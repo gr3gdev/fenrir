@@ -1,4 +1,4 @@
-package com.github.gr3gdev.moon.server.http;
+package io.github.gr3gdev.moon.server.http;
 
 /**
  * Interface for remote address.

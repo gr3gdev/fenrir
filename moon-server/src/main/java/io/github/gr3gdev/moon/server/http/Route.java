@@ -1,8 +1,8 @@
-package com.github.gr3gdev.moon.server.http;
+package io.github.gr3gdev.moon.server.http;
 
 import java.util.Set;
 
-import com.github.gr3gdev.moon.server.plugin.ServerPlugin;
+import io.github.gr3gdev.moon.server.plugin.ServerPlugin;
 
 /**
  * Response.

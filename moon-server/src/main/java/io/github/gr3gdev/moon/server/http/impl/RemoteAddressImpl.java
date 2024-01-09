@@ -1,6 +1,6 @@
-package com.github.gr3gdev.moon.server.http.impl;
+package io.github.gr3gdev.moon.server.http.impl;
 
-import com.github.gr3gdev.moon.server.http.RemoteAddress;
+import io.github.gr3gdev.moon.server.http.RemoteAddress;
 
 /**
  * RemoteAddressImpl.

@@ -1,4 +1,4 @@
-package com.github.gr3gdev.moon.server.plugin;
+package io.github.gr3gdev.moon.server.plugin;
 
 /**
  * ServerPlugin.

@@ -1,4 +1,4 @@
-package com.github.gr3gdev.moon.server.http.impl;
+package io.github.gr3gdev.moon.server.http.impl;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,8 +14,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.github.gr3gdev.moon.server.http.RemoteAddress;
-import com.github.gr3gdev.moon.server.http.Request;
+import io.github.gr3gdev.moon.server.http.RemoteAddress;
+import io.github.gr3gdev.moon.server.http.Request;
 
 /**
  * RequestImpl.

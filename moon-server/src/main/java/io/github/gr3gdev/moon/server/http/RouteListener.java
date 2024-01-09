@@ -1,4 +1,4 @@
-package com.github.gr3gdev.moon.server.http;
+package io.github.gr3gdev.moon.server.http;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 
-import com.github.gr3gdev.moon.server.plugin.ServerPlugin;
+import io.github.gr3gdev.moon.server.plugin.ServerPlugin;
 
 /**
  * RouteListener.

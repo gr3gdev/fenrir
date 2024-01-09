@@ -1,12 +1,12 @@
-package com.github.gr3gdev.moon.server;
+package io.github.gr3gdev.moon.server;
 
 import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.gr3gdev.moon.server.http.HttpStatus;
-import com.github.gr3gdev.moon.server.http.RequestMethod;
-import com.github.gr3gdev.moon.server.http.RouteListener;
+import io.github.gr3gdev.moon.server.http.HttpStatus;
+import io.github.gr3gdev.moon.server.http.RequestMethod;
+import io.github.gr3gdev.moon.server.http.RouteListener;
 
 public class ServerTest {
 

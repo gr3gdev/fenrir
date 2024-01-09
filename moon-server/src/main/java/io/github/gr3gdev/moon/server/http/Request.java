@@ -1,4 +1,4 @@
-package com.github.gr3gdev.moon.server.http;
+package io.github.gr3gdev.moon.server.http;
 
 import java.util.Map;
 import java.util.Optional;

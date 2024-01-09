@@ -1,4 +1,4 @@
-package com.github.gr3gdev.moon.server.socket;
+package io.github.gr3gdev.moon.server.socket;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -6,8 +6,8 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Set;
 
-import com.github.gr3gdev.moon.server.http.Request;
-import com.github.gr3gdev.moon.server.http.impl.RequestImpl;
+import io.github.gr3gdev.moon.server.http.Request;
+import io.github.gr3gdev.moon.server.http.impl.RequestImpl;
 
 public class SocketReader implements Runnable {
 

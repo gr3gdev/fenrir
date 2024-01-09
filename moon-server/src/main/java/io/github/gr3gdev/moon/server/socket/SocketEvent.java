@@ -1,13 +1,13 @@
-package com.github.gr3gdev.moon.server.socket;
+package io.github.gr3gdev.moon.server.socket;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.github.gr3gdev.moon.server.http.Request;
-import com.github.gr3gdev.moon.server.http.RequestMethod;
-import com.github.gr3gdev.moon.server.http.RouteListener;
+import io.github.gr3gdev.moon.server.http.Request;
+import io.github.gr3gdev.moon.server.http.RequestMethod;
+import io.github.gr3gdev.moon.server.http.RouteListener;
 
 public class SocketEvent {
 

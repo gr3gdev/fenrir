@@ -1,11 +1,11 @@
-package com.github.gr3gdev.moon.server.http.impl;
+package io.github.gr3gdev.moon.server.http.impl;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.StringTokenizer;
 
-import com.github.gr3gdev.moon.server.http.Request;
+import io.github.gr3gdev.moon.server.http.Request;
 
 /**
  * ReaderUtil.

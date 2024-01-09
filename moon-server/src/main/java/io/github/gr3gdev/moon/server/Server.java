@@ -1,4 +1,4 @@
-package com.github.gr3gdev.moon.server;
+package io.github.gr3gdev.moon.server;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -13,12 +13,12 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
-import com.github.gr3gdev.moon.server.http.HttpStatus;
-import com.github.gr3gdev.moon.server.http.RequestMethod;
-import com.github.gr3gdev.moon.server.http.RouteListener;
-import com.github.gr3gdev.moon.server.plugin.ServerPlugin;
-import com.github.gr3gdev.moon.server.socket.SocketEvent;
-import com.github.gr3gdev.moon.server.socket.SocketReader;
+import io.github.gr3gdev.moon.server.http.HttpStatus;
+import io.github.gr3gdev.moon.server.http.RequestMethod;
+import io.github.gr3gdev.moon.server.http.RouteListener;
+import io.github.gr3gdev.moon.server.plugin.ServerPlugin;
+import io.github.gr3gdev.moon.server.socket.SocketEvent;
+import io.github.gr3gdev.moon.server.socket.SocketReader;
 
 public class Server implements Runnable {
 
