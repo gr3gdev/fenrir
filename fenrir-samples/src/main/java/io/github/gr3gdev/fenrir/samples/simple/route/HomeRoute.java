@@ -1,9 +1,10 @@
 package io.github.gr3gdev.fenrir.samples.simple.route;
 
-import io.github.gr3gdev.fenrir.server.annotation.Listener;
-import io.github.gr3gdev.fenrir.server.annotation.Route;
+import io.github.gr3gdev.fenrir.annotation.Route;
+import io.github.gr3gdev.fenrir.plugin.impl.FileLoaderPlugin;
+import io.github.gr3gdev.fenrir.annotation.Listener;
 
-@Route
+@Route(plugin = FileLoaderPlugin.class)
 public class HomeRoute {
 
     @Listener(path = "/")

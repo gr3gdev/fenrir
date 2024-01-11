@@ -4,4 +4,4 @@ plugins {
 }
 
 rootProject.name = "fenrir"
-include("fenrir-server", "fenrir-samples", "fenrir-thymeleaf")
+include("fenrir-api", "fenrir-http", "fenrir-samples", "fenrir-thymeleaf", "fenrir-gradle-plugin")

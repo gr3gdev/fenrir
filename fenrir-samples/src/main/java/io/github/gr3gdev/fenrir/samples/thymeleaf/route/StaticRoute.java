@@ -1,10 +1,11 @@
 package io.github.gr3gdev.fenrir.samples.thymeleaf.route;
 
-import io.github.gr3gdev.fenrir.server.annotation.Listener;
-import io.github.gr3gdev.fenrir.server.annotation.Param;
-import io.github.gr3gdev.fenrir.server.annotation.Route;
+import io.github.gr3gdev.fenrir.annotation.Listener;
+import io.github.gr3gdev.fenrir.annotation.Param;
+import io.github.gr3gdev.fenrir.annotation.Route;
+import io.github.gr3gdev.fenrir.plugin.impl.FileLoaderPlugin;
 
-@Route
+@Route(plugin = FileLoaderPlugin.class)
 public class StaticRoute {
 
     @Listener(path = "/css/{file}", contentType = "text/css")

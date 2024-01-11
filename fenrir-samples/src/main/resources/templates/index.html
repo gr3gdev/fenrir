@@ -9,7 +9,15 @@
 
 <body>
     <h1 th:text="#{messages.title}">Title</h1>
-    <p th:utext="${welcome}">Welcome !</p>
+
+    <form method="POST" action="/">
+        <p th:utext="${welcome}">Welcome !</p>
+        <select name="locale">
+            <option th:each="l: ${locales}" th:value="${l.language}" th:text="${l.displayCountry}"
+                th:selected="${l.language==locale.language}">Locale</option>
+        </select>
+        <button type="submit" th:text="#{messages.submit}">Submit</button>
+    </form>
 </body>
 
 </html>

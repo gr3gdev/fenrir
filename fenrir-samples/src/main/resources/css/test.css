@@ -5,3 +5,7 @@ body {
 p, h1 {
     color: #FFF;
 }
+
+select {
+    color: #444;
+}

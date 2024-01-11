@@ -9,7 +9,8 @@ repositories {
 dependencies {
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
-    implementation(project(":fenrir-server"))
+    implementation(project(":fenrir-api"))
+    implementation(project(":fenrir-http"))
     implementation(libs.thymeleaf)
 }
 

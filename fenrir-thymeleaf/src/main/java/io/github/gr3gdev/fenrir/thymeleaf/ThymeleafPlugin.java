@@ -1,16 +1,16 @@
 package io.github.gr3gdev.fenrir.thymeleaf;
 
+import io.github.gr3gdev.fenrir.http.HttpRequest;
+import io.github.gr3gdev.fenrir.http.HttpResponse;
+import io.github.gr3gdev.fenrir.http.HttpStatus;
+import io.github.gr3gdev.fenrir.plugin.Plugin;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.AbstractContext;
 import org.thymeleaf.messageresolver.StandardMessageResolver;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
-import io.github.gr3gdev.fenrir.server.http.HttpStatus;
-import io.github.gr3gdev.fenrir.server.http.Response;
-import io.github.gr3gdev.fenrir.server.plugin.Plugin;
-
-public class ThymeleafPlugin extends Plugin<ThymeleafResponse> {
+public class ThymeleafPlugin extends Plugin<ThymeleafResponse, HttpRequest, HttpResponse> {
 
     private static final TemplateEngine templateEngine = new TemplateEngine();
 
@@ -30,7 +30,7 @@ public class ThymeleafPlugin extends Plugin<ThymeleafResponse> {
     private static final class JServerContext extends AbstractContext {
 
         public JServerContext(ThymeleafResponse thymeleafResponse) {
-            super(thymeleafResponse.getLocale(), thymeleafResponse.getVariables());
+            super(thymeleafResponse.locale(), thymeleafResponse.variables());
         }
     }
 
@@ -40,10 +40,9 @@ public class ThymeleafPlugin extends Plugin<ThymeleafResponse> {
     }
 
     @Override
-    public Response process(ThymeleafResponse methodReturn, String contentType) {
-        final ThymeleafResponse thymeleafResponse = (ThymeleafResponse) methodReturn;
-        final String content = templateEngine.process(thymeleafResponse.getPage(),
-                new JServerContext(thymeleafResponse));
-        return Response.of(HttpStatus.OK).content(content, contentType);
+    public HttpResponse process(ThymeleafResponse methodReturn, String contentType) {
+        final String content = templateEngine.process(methodReturn.page(),
+                new JServerContext(methodReturn));
+        return HttpResponse.of(HttpStatus.OK).content(content, contentType);
     }
 }

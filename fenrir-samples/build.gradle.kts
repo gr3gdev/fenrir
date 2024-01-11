@@ -7,7 +7,8 @@ repositories {
 }
 
 dependencies {
-    implementation(project(":fenrir-server"))
+    implementation(project(":fenrir-api"))
+    implementation(project(":fenrir-http"))
     implementation(project(":fenrir-thymeleaf"))
 }
 
