@@ -14,17 +14,31 @@ import java.nio.file.StandardCopyOption;
 import java.util.Objects;
 import java.util.stream.Stream;
 
+/**
+ * Task for create an optimized docker image.
+ */
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class DockerImageTask extends AbstractFenrirTask {
 
+    /**
+     * Task name.
+     */
     public static final String TASK_NAME = "buildDockerImage";
 
+    /**
+     * Constructor.
+     */
     public DockerImageTask() {
         super();
         setDescription("Build a docker image");
         dependsOn(ListJavaDependenciesTask.TASK_NAME);
     }
 
+    /**
+     * Main action.
+     *
+     * @throws IOException deps.info not found, libs not found
+     */
     @TaskAction
     public void exec() throws IOException {
         final File dir = getTemporaryDir();

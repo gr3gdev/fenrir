@@ -4,22 +4,22 @@ import fenrir.gradle.plugin.ext.FenrirExtension;
 import fenrir.gradle.plugin.task.DockerImageTask;
 import fenrir.gradle.plugin.task.ListJavaDependenciesTask;
 import fenrir.gradle.plugin.task.PrepareSourcesTask;
+import lombok.NoArgsConstructor;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
-import javax.inject.Inject;
-
 /**
  * Fenrir Gradle plugin.
  */
-public class FenrirGradlePluginPlugin extends JavaPlugin {
+@NoArgsConstructor
+public abstract class FenrirGradlePluginPlugin extends JavaPlugin {
 
-    @Inject
-    public FenrirGradlePluginPlugin() {
-        super();
-    }
-
+    /**
+     * Apply the plugin to the project (include {@link JavaPlugin}).
+     *
+     * @param project The target object
+     */
     public void apply(@NotNull Project project) {
         super.apply(project);
         project.getExtensions().create(FenrirExtension.NAME, FenrirExtension.class);
