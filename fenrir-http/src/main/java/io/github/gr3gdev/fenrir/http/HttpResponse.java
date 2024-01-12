@@ -1,11 +1,10 @@
 package io.github.gr3gdev.fenrir.http;
 
+import io.github.gr3gdev.fenrir.Logger;
 import io.github.gr3gdev.fenrir.Response;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,6 +19,8 @@ import java.util.Set;
  */
 @Getter
 public class HttpResponse implements Response {
+
+    private static final Logger LOGGER = new Logger("Fenrir.HttpResponse");
 
     private byte[] content;
     @Setter
@@ -75,7 +76,7 @@ public class HttpResponse implements Response {
                 this.content = file.path.getBytes(StandardCharsets.UTF_8);
             }
         } catch (IOException exc) {
-            exc.printStackTrace();
+            LOGGER.error("Error when read file " + pathFile, exc);
         }
         return this;
     }
@@ -147,7 +148,7 @@ public class HttpResponse implements Response {
 
     static class File {
 
-        private static final Logger LOGGER = LoggerFactory.getLogger(File.class);
+        private static final Logger LOGGER = new Logger("Fenrir.HttpResponse.File");
 
         private final String path;
         private final String contentType;
@@ -165,7 +166,7 @@ public class HttpResponse implements Response {
             try (final InputStream resourceAsStream = Thread.currentThread().getContextClassLoader()
                     .getResourceAsStream(path)) {
                 if (resourceAsStream == null) {
-                    LOGGER.warn("Content not found : " + path);
+                    LOGGER.warn("Content not found : {0}", path);
                     return null;
                 } else {
                     return resourceAsStream.readAllBytes();

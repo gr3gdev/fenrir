@@ -12,8 +12,6 @@ repositories {
 dependencies {
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
-    implementation(libs.slf4j)
-    implementation(libs.logback)
     implementation(project(":fenrir-api"))
     testImplementation(libs.junit.jupiter)
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

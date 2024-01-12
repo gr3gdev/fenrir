@@ -1,20 +1,27 @@
 package io.github.gr3gdev.fenrir;
 
+import io.github.gr3gdev.fenrir.event.SocketEvent;
+import io.github.gr3gdev.fenrir.plugin.Plugin;
+import io.github.gr3gdev.fenrir.runtime.Mode;
+
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.logging.LogManager;
 import java.util.stream.Collectors;
-
-import io.github.gr3gdev.fenrir.event.SocketEvent;
-import io.github.gr3gdev.fenrir.plugin.Plugin;
-import io.github.gr3gdev.fenrir.runtime.Mode;
 
 public final class FenrirApplication {
     public static void run(Class<?> mainClass) {
         if (mainClass.isAnnotationPresent(FenrirConfiguration.class)) {
+            try {
+                LogManager.getLogManager().readConfiguration(FenrirApplication.class.getResourceAsStream("/logging.properties"));
+            } catch (IOException e) {
+                throw new RuntimeException("Unable to read logging.properties", e);
+            }
             final Instant start = Instant.now();
             final FenrirConfiguration configuration = mainClass.getAnnotation(FenrirConfiguration.class);
             final Map<Class<?>, Plugin<?, ? extends Request, ? extends Response>> plugins = loadPlugins(configuration);
@@ -26,7 +33,7 @@ public final class FenrirApplication {
         }
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private static void initModes(
             Class<? extends Mode<? extends SocketEvent, ? extends Request, ? extends Response>>[] modes,
             Class<?> mainClass,
@@ -39,7 +46,7 @@ public final class FenrirApplication {
                         final Set<? extends SocketEvent> socketEvents = instance.init(mainClass, plugins);
                         server.addEvents(socketEvents, instance.getSocketReaderClass());
                     } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
-                            | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+                             | InvocationTargetException | NoSuchMethodException | SecurityException e) {
                         throw new RuntimeException("Unable to load runtime mode " + mode.getCanonicalName(), e);
                     }
                 });
@@ -63,7 +70,7 @@ public final class FenrirApplication {
         try {
             return pluginClass.getDeclaredConstructor().newInstance();
         } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
-                | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+                 | InvocationTargetException | NoSuchMethodException | SecurityException e) {
             throw new RuntimeException(e);
         }
     }

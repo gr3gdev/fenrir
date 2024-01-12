@@ -5,8 +5,6 @@ import io.github.gr3gdev.fenrir.event.StartupEvent;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Delegate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -23,7 +21,7 @@ import java.util.function.Consumer;
 @NoArgsConstructor
 final class Server {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Server.class);
+    private static final Logger LOGGER = new Logger("Fenrir.Server");
 
     private final AtomicBoolean active = new AtomicBoolean(false);
     private ServerSocket serverSocket;
@@ -57,13 +55,13 @@ final class Server {
             final StartupEvent startupEvent = new StartupEvent();
             startupEvents.forEach(e -> e.accept(startupEvent));
             final long timeInMs = Duration.between(start, Instant.now()).toMillis();
-            LOGGER.info("Fenrir Server (" + properties.getProperty("version") + ") started on port " + port
-                    + " in " + timeInMs + "ms");
+            LOGGER.info("Server ({0}) started on port {1,number,####} in {2,number} ms",
+                    properties.getProperty("version"), port, timeInMs);
 
             while (active.get()) {
                 if (serverSocket != null && !serverSocket.isClosed()) {
                     try {
-                        Thread.ofPlatform().name("Fenrir Server SocketReader")
+                        Thread.ofPlatform().name("Fenrir.Server SocketReader")
                                 .start(socketReaderClass.getDeclaredConstructor(Socket.class, Set.class)
                                         .newInstance(serverSocket.accept(), socketEvents));
                     } catch (IOException | InstantiationException | IllegalAccessException | IllegalArgumentException
@@ -77,7 +75,7 @@ final class Server {
 
             this.serverSocket.close();
 
-            LOGGER.info("Fenrir Server stopped");
+            LOGGER.info("Server stopped");
             this.socketEvents.clear();
             this.startupEvents.clear();
         } catch (IOException exc) {

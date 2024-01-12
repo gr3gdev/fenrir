@@ -3,7 +3,6 @@ package fenrir.gradle.plugin;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.CleanupMode;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
@@ -18,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * A simple functional test for the 'fenrir.gradle.plugin' plugin.
  */
 class FenrirGradlePluginPluginFunctionalTest {
-    @TempDir(cleanup = CleanupMode.NEVER)
+    @TempDir
     File projectDir;
 
     private File getBuildFile() {
@@ -58,8 +57,6 @@ class FenrirGradlePluginPluginFunctionalTest {
                 }
 
                 dependencies {
-                    implementation('org.slf4j:slf4j-api:2.0.11')
-                    implementation('ch.qos.logback:logback-classic:1.4.14')
                     implementation files('%1$s/fenrir-api/build/libs/fenrir-api-0.1.0.jar')
                     implementation files('%1$s/fenrir-http/build/libs/fenrir-http-0.1.0.jar')
                 }
@@ -70,12 +67,9 @@ class FenrirGradlePluginPluginFunctionalTest {
                     }
                 }
 
-                dockerImage {
-                    imageName = "functionnal-test"
-                }
-
                 fenrir {
                     mainClass = "io.github.gr3gdev.fenrir.gradle.plugin.Test"
+                    imageName = "functionnal-test"
                 }
                 """, new File(Objects.requireNonNull(FenrirGradlePluginPluginFunctionalTest.class.getClassLoader().getResource(".")).getPath(),
                 "../../../../..").getAbsolutePath()));
