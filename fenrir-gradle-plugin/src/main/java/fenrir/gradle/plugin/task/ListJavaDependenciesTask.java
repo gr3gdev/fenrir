@@ -20,7 +20,7 @@ public class ListJavaDependenciesTask extends AbstractFenrirTask {
 
     @TaskAction
     public void exec() throws IOException {
-        final String javaVersion = getExtention().getJavaVersion().getVersion();
+        final String javaVersion = getJavaVersion();
         final String classPathDirectory = new File(getTemporaryDir().getParentFile(), PrepareSourcesTask.TASK_NAME).getAbsolutePath();
         final File depsFile = new File(getTemporaryDir(), "deps.info");
         getProject().exec(it -> {

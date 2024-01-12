@@ -46,7 +46,6 @@ class FenrirGradlePluginPluginFunctionalTest {
         writeString(getBuildFile(), String.format("""
                 plugins {
                     id('fenrir.gradle.plugin')
-                    id 'java'
                 }
 
                 group = "com.example"

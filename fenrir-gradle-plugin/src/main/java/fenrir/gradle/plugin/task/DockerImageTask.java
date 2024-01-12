@@ -32,9 +32,9 @@ public abstract class DockerImageTask extends AbstractFenrirTask {
                 new File(dir, "deps.info").toPath(), StandardCopyOption.REPLACE_EXISTING);
         copyDirectory(new File(dir.getParentFile(), PrepareSourcesTask.TASK_NAME).toPath(),
                 new File(dir, "libs").getAbsolutePath());
-        final FenrirExtension fenrirExtension = getExtention();
+        final FenrirExtension fenrirExtension = getFenrirExtension();
         generateEntrypoint(dir, fenrirExtension);
-        generateDockerfile(dir, fenrirExtension);
+        generateDockerfile(dir);
         getProject().exec(it -> {
             it.setWorkingDir(dir);
             it.commandLine("docker", "build", ".", "-q", "-t", fenrirExtension.getImageName());
@@ -65,11 +65,11 @@ public abstract class DockerImageTask extends AbstractFenrirTask {
                 entrypointContent);
     }
 
-    private void generateDockerfile(File dir, FenrirExtension ext) throws IOException {
+    private void generateDockerfile(File dir) throws IOException {
         final String dockerfileContent = new String(Objects.requireNonNull(DockerImageTask.class
                 .getResourceAsStream("/Dockerfile-template")).readAllBytes(),
                 StandardCharsets.UTF_8)
-                .replace("[javaVersion]", ext.getJavaVersion().getVersion());
+                .replace("[javaVersion]", getJavaVersion());
         Files.writeString(new File(dir, "Dockerfile").toPath(),
                 dockerfileContent);
     }

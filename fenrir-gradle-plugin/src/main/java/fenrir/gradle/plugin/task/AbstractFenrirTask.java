@@ -2,6 +2,7 @@ package fenrir.gradle.plugin.task;
 
 import fenrir.gradle.plugin.ext.FenrirExtension;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.tasks.Internal;
 
 public abstract class AbstractFenrirTask extends DefaultTask {
@@ -10,8 +11,18 @@ public abstract class AbstractFenrirTask extends DefaultTask {
     }
 
     @Internal
-    protected FenrirExtension getExtention() {
+    protected FenrirExtension getFenrirExtension() {
         return getProject().getExtensions().getByType(FenrirExtension.class);
+    }
+
+    @Internal
+    protected JavaPluginExtension getJavaPluginExtension() {
+        return getProject().getExtensions().getByType(JavaPluginExtension.class);
+    }
+
+    @Internal
+    protected String getJavaVersion() {
+        return getJavaPluginExtension().getTargetCompatibility().name().substring("VERSION_".length());
     }
 
     @Internal
