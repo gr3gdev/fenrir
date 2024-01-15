@@ -1,0 +1,12 @@
+version: "3.3"
+
+services:
+  benchmark-spring:
+    image: gr3gdev/benchmark-spring
+    ports:
+      - 9001:9001
+
+  benchmark-quarkus:
+    image: gr3gdev/benchmark-quarkus
+    ports:
+      - 9002:9002
