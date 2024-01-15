@@ -2,8 +2,10 @@
 junit-jupiter = "5.10.0"
 lombok = "1.18.30"
 thymeleaf = "3.1.2.RELEASE"
+hibernate = "6.4.1.Final"
 
 [libraries]
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-jupiter" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
 thymeleaf = { module = "org.thymeleaf:thymeleaf", version.ref = "thymeleaf" }
+hibernate = { module = "org.hibernate.orm:hibernate-core", version.ref = "hibernate" }
