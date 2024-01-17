@@ -2,18 +2,25 @@ package io.github.gr3gdev.fenrir.jpa;
 
 import java.util.List;
 
-public interface JpaRepository<E extends Class<?>, K extends Class<?>> extends JpaCrudRepository<E, K> {
+import static io.github.gr3gdev.fenrir.jpa.JPAManager.entityManager;
+
+public interface JpaRepository<E, K> extends JpaCrudRepository<E, K> {
 
     default List<E> select(String qlString) {
-        return JPAManager.getEntityManager()
+        return entityManager()
                 .createQuery(qlString, getDomainClass())
                 .getResultList();
     }
 
     default int update(String qlString) {
-        return JPAManager.getEntityManager()
-                .createQuery(qlString, getDomainClass())
-                .executeUpdate();
+        try {
+            entityManager().getTransaction().begin();
+            return entityManager()
+                    .createQuery(qlString, getDomainClass())
+                    .executeUpdate();
+        } finally {
+            entityManager().getTransaction().commit();
+        }
     }
 
 }

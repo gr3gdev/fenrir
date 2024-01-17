@@ -6,8 +6,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Set;
@@ -56,28 +54,6 @@ public class HttpResponse implements Response {
     public HttpResponse content(String text, String contentType) {
         this.content = text.getBytes(StandardCharsets.UTF_8);
         this.contentType = contentType;
-        return this;
-    }
-
-    /**
-     * Response from file.
-     *
-     * @param pathFile    The path of the file
-     * @param contentType The content-type of the file
-     * @return Response
-     */
-    public HttpResponse file(String pathFile, String contentType) {
-        final File file = new File(pathFile, contentType);
-        this.contentType = file.contentType;
-        try {
-            this.content = file.content();
-            if (this.content == null) {
-                this.status = HttpStatus.NOT_FOUND;
-                this.content = file.path.getBytes(StandardCharsets.UTF_8);
-            }
-        } catch (IOException exc) {
-            LOGGER.error("Error when read file " + pathFile, exc);
-        }
         return this;
     }
 
@@ -146,33 +122,5 @@ public class HttpResponse implements Response {
         }
     }
 
-    static class File {
-
-        private static final Logger LOGGER = new Logger("Fenrir.HttpResponse.File");
-
-        private final String path;
-        private final String contentType;
-
-        public File(String path, String contentType) {
-            if (path.startsWith("/")) {
-                this.path = path.substring(1);
-            } else {
-                this.path = path;
-            }
-            this.contentType = contentType;
-        }
-
-        private byte[] content() throws IOException {
-            try (final InputStream resourceAsStream = Thread.currentThread().getContextClassLoader()
-                    .getResourceAsStream(path)) {
-                if (resourceAsStream == null) {
-                    LOGGER.warn("Content not found : {0}", path);
-                    return null;
-                } else {
-                    return resourceAsStream.readAllBytes();
-                }
-            }
-        }
-    }
 
 }

@@ -11,7 +11,10 @@ repositories {
 }
 
 dependencies {
-    implementation(libs.hibernate)
+    compileOnly(libs.lombok)
+    annotationProcessor(libs.lombok)
+    implementation(project(":fenrir-api"))
+    api(libs.hibernate)
 }
 
 publishing {

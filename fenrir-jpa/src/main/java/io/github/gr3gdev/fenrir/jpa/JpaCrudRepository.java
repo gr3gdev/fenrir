@@ -1,38 +1,66 @@
 package io.github.gr3gdev.fenrir.jpa;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
-public interface JpaCrudRepository<E extends Class<?>, K extends Class<?>> {
+import static io.github.gr3gdev.fenrir.jpa.JPAManager.*;
+
+public interface JpaCrudRepository<E, K> {
 
     Class<E> getDomainClass();
 
-    Map<String, Object> getPrimaryKeyFilter(K id);
+    Class<K> getIdClass();
 
     default List<E> findAll() {
-        return JPAManager.getEntityManager()
-                .createQuery(JPAManager.select(getDomainClass()))
+        return entityManager()
+                .createQuery(selectFromClass(getDomainClass()))
                 .getResultList();
     }
 
     default Optional<E> findById(K id) {
-        return Optional.of(JPAManager.getEntityManager()
-                .createQuery(JPAManager.select(getDomainClass(), getPrimaryKeyFilter(id)))
+        return Optional.of(entityManager()
+                .createQuery(selectFromClass(getDomainClass(), getPrimaryKeyFilter(getDomainClass(), id)))
                 .getSingleResult());
     }
 
     default E save(E entity) {
-        return JPAManager.getEntityManager().merge(entity);
+        if (entity == null) {
+            throw new RuntimeException("Cannot save a null entity");
+        }
+        try {
+            entityManager().getTransaction().begin();
+            if (getIdValue(getDomainClass(), getIdClass(), entity) == null) {
+                entityManager().persist(entity);
+                entityManager().flush();
+                return entity;
+            } else {
+                return entityManager().merge(entity);
+            }
+        } finally {
+            entityManager().getTransaction().commit();
+        }
     }
 
     default void delete(E entity) {
-        JPAManager.getEntityManager().detach(entity);
+        if (entity == null) {
+            throw new RuntimeException("Cannot delete a null entity");
+        }
+        try {
+            entityManager().getTransaction().begin();
+            entityManager().detach(entity);
+        } finally {
+            entityManager().getTransaction().commit();
+        }
     }
 
     default int deleteById(K id) {
-        return JPAManager.getEntityManager().createQuery(
-                        JPAManager.delete(getDomainClass(), getPrimaryKeyFilter(id)))
-                .executeUpdate();
+        try {
+            entityManager().getTransaction().begin();
+            return entityManager().createQuery(
+                            deleteFromClass(getDomainClass(), getPrimaryKeyFilter(getDomainClass(), id)))
+                    .executeUpdate();
+        } finally {
+            entityManager().getTransaction().commit();
+        }
     }
 }

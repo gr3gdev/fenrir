@@ -15,7 +15,7 @@ import java.util.logging.LogManager;
 import java.util.stream.Collectors;
 
 public final class FenrirApplication {
-    public static void run(Class<?> mainClass) {
+    public static void run(final Class<?> mainClass) {
         if (mainClass.isAnnotationPresent(FenrirConfiguration.class)) {
             try {
                 LogManager.getLogManager().readConfiguration(FenrirApplication.class.getResourceAsStream("/logging.properties"));
@@ -24,7 +24,7 @@ public final class FenrirApplication {
             }
             final Instant start = Instant.now();
             final FenrirConfiguration configuration = mainClass.getAnnotation(FenrirConfiguration.class);
-            final Map<Class<?>, Plugin<?, ? extends Request, ? extends Response>> plugins = loadPlugins(configuration);
+            final Map<Class<?>, Plugin> plugins = loadPlugins(configuration, mainClass);
             final Server server = initServer(configuration);
             initModes(configuration.modes(), mainClass, plugins, server);
             server.run(start);
@@ -35,10 +35,8 @@ public final class FenrirApplication {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static void initModes(
-            Class<? extends Mode<? extends SocketEvent, ? extends Request, ? extends Response>>[] modes,
-            Class<?> mainClass,
-            Map<Class<?>, Plugin<?, ? extends Request, ? extends Response>> plugins,
-            Server server) {
+            final Class<? extends Mode<? extends SocketEvent>>[] modes,
+            final Class<?> mainClass, final Map<Class<?>, Plugin> plugins, final Server server) {
         Arrays.stream(modes).parallel()
                 .forEach(mode -> {
                     try {
@@ -52,10 +50,9 @@ public final class FenrirApplication {
                 });
     }
 
-    private static Map<Class<?>, Plugin<?, ? extends Request, ? extends Response>> loadPlugins(
-            final FenrirConfiguration configuration) {
+    private static Map<Class<?>, Plugin> loadPlugins(final FenrirConfiguration configuration, final Class<?> mainClass) {
         return Arrays.stream(configuration.plugins())
-                .map(FenrirApplication::initPlugin)
+                .map(pluginClass -> initPlugin(pluginClass, mainClass))
                 .collect(Collectors.toMap(Plugin::getClass, Function.identity()));
     }
 
@@ -65,10 +62,11 @@ public final class FenrirApplication {
         return server;
     }
 
-    private static Plugin<?, ? extends Request, ? extends Response> initPlugin(
-            Class<? extends Plugin<?, ? extends Request, ? extends Response>> pluginClass) {
+    private static Plugin initPlugin(final Class<? extends Plugin> pluginClass, final Class<?> mainClass) {
         try {
-            return pluginClass.getDeclaredConstructor().newInstance();
+            final Plugin plugin = pluginClass.getDeclaredConstructor().newInstance();
+            plugin.init(mainClass);
+            return plugin;
         } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
                  | InvocationTargetException | NoSuchMethodException | SecurityException e) {
             throw new RuntimeException(e);

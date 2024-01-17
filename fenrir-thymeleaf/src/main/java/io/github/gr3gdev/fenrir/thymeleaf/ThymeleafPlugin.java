@@ -1,16 +1,13 @@
 package io.github.gr3gdev.fenrir.thymeleaf;
 
-import io.github.gr3gdev.fenrir.http.HttpRequest;
-import io.github.gr3gdev.fenrir.http.HttpResponse;
-import io.github.gr3gdev.fenrir.http.HttpStatus;
-import io.github.gr3gdev.fenrir.plugin.Plugin;
+import io.github.gr3gdev.fenrir.plugin.impl.HttpSocketPlugin;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.AbstractContext;
 import org.thymeleaf.messageresolver.StandardMessageResolver;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
-public class ThymeleafPlugin extends Plugin<ThymeleafResponse, HttpRequest, HttpResponse> {
+public class ThymeleafPlugin extends HttpSocketPlugin<ThymeleafResponse> {
 
     private static final TemplateEngine templateEngine = new TemplateEngine();
 
@@ -35,14 +32,8 @@ public class ThymeleafPlugin extends Plugin<ThymeleafResponse, HttpRequest, Http
     }
 
     @Override
-    protected Class<ThymeleafResponse> getReturnMethodClass() {
-        return ThymeleafResponse.class;
-    }
-
-    @Override
-    public HttpResponse process(ThymeleafResponse methodReturn, String contentType) {
-        final String content = templateEngine.process(methodReturn.page(),
+    protected String toString(ThymeleafResponse methodReturn) {
+        return templateEngine.process(methodReturn.page(),
                 new JServerContext(methodReturn));
-        return HttpResponse.of(HttpStatus.OK).content(content, contentType);
     }
 }

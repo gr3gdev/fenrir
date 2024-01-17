@@ -7,3 +7,4 @@ rootProject.name = "fenrir"
 include("fenrir-api", "fenrir-http", "fenrir-samples", "fenrir-thymeleaf")
 include("fenrir-gradle-plugin")
 include("fenrir-jpa")
+include("fenrir-rest")
