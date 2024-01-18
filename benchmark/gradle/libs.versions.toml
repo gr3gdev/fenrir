@@ -1,8 +1,10 @@
 [versions]
 lombok = "1.18.30"
+h2 = "2.2.224"
 fenrir = "0.1.0"
 
 [libraries]
+h2 = { module = "com.h2database:h2", version.ref = "h2" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
 fenrir-api = { module = "io.github.gr3gdev:fenrir-api", version.ref = "fenrir" }
 fenrir-http = { module = "io.github.gr3gdev:fenrir-http", version.ref = "fenrir" }

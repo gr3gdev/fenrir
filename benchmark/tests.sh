@@ -37,7 +37,9 @@ test() {
 }
 
 # Build images
-./gradlew benchmark-spring:bootBuildImage benchmark-quarkus:imageBuild
+./gradlew benchmark-spring:bootBuildImage
+./gradlew benchmark-quarkus:imageBuild
+./gradlew benchmark-fenrir:buildDockerImage
 
 # Start docker-compose
 docker-compose up -d
@@ -46,16 +48,7 @@ sleep 5
 # Tests
 test "benchmark-spring" 9001
 test "benchmark-quarkus" 9002
+test "benchmark-fenrir" 9003
 
 # Stop docker-compose
 docker-compose down
-
-# Diff
-mkdir -p build/diff/country build/diff/city build/diff/address build/diff/person
-for e in "country" "city" "address" "person"; do
-  diff -u -w "build/benchmark-spring/$e/create" "build/benchmark-quarkus/$e/create" > "build/diff/$e/create"
-  diff -u -w "build/benchmark-spring/$e/update" "build/benchmark-quarkus/$e/update" > "build/diff/$e/update"
-  diff -u -w "build/benchmark-spring/$e/findAll" "build/benchmark-quarkus/$e/findAll" > "build/diff/$e/findAll"
-  diff -u -w "build/benchmark-spring/$e/findById" "build/benchmark-quarkus/$e/findById" > "build/diff/$e/findById"
-  diff -u -w "build/benchmark-spring/$e/delete" "build/benchmark-quarkus/$e/delete" > "build/diff/$e/delete"
-done

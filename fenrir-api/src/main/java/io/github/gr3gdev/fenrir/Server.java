@@ -55,7 +55,7 @@ final class Server {
             final StartupEvent startupEvent = new StartupEvent();
             startupEvents.forEach(e -> e.accept(startupEvent));
             final long timeInMs = Duration.between(start, Instant.now()).toMillis();
-            LOGGER.info("Server ({0}) started on port {1,number,####} in {2,number} ms",
+            LOGGER.info("Server ({0}) started on port {1,number,####} in {2,number,####} ms",
                     properties.getProperty("version"), port, timeInMs);
 
             while (active.get()) {

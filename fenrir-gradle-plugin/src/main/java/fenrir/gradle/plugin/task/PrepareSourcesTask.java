@@ -1,15 +1,14 @@
 package fenrir.gradle.plugin.task;
 
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
 
 /**
  * Task for prepare sources with all dependencies in a specific directory.
  */
-@DisableCachingByDefault(because = "Not worth caching")
 public class PrepareSourcesTask extends AbstractFenrirTask {
 
     /**
@@ -38,10 +37,14 @@ public class PrepareSourcesTask extends AbstractFenrirTask {
             conf.getFiles()
                     .forEach(file ->
                             getProject().copy(it ->
-                                    it.from(getProject().zipTree(file)).into(outputDir)
+                                    it.from(getProject().zipTree(file))
+                                            .into(outputDir)
+                                            .setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
                             ));
         }
         final File jarFile = new File(projectDir, "build/libs/" + getLibraryFullName());
-        getProject().copy(it -> it.from(getProject().zipTree(jarFile)).into(outputDir));
+        getProject().copy(it -> it.from(getProject().zipTree(jarFile))
+                .into(outputDir)
+                .setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE));
     }
 }

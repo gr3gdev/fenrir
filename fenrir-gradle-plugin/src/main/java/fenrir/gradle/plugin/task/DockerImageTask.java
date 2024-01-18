@@ -41,14 +41,15 @@ public abstract class DockerImageTask extends AbstractFenrirTask {
      */
     @TaskAction
     public void exec() throws IOException {
+        getProject().delete(getTemporaryDir().getAbsolutePath());
         final File dir = getTemporaryDir();
         Files.copy(new File(dir.getParentFile(), ListJavaDependenciesTask.TASK_NAME + "/deps.info").toPath(),
                 new File(dir, "deps.info").toPath(), StandardCopyOption.REPLACE_EXISTING);
         copyDirectory(new File(dir.getParentFile(), PrepareSourcesTask.TASK_NAME).toPath(),
                 new File(dir, "libs").getAbsolutePath());
         final FenrirExtension fenrirExtension = getFenrirExtension();
-        generateEntrypoint(dir, fenrirExtension);
-        generateDockerfile(dir);
+        generateEntrypoint(dir);
+        generateDockerfile(dir, fenrirExtension);
         getProject().exec(it -> {
             it.setWorkingDir(dir);
             it.commandLine("docker", "build", ".", "-q", "-t", fenrirExtension.getImageName());
@@ -70,20 +71,20 @@ public abstract class DockerImageTask extends AbstractFenrirTask {
         }
     }
 
-    private void generateEntrypoint(File dir, FenrirExtension ext) throws IOException {
+    private void generateEntrypoint(File dir) throws IOException {
         final String entrypointContent = new String(Objects.requireNonNull(DockerImageTask.class
                 .getResourceAsStream("/entrypoint.sh")).readAllBytes(),
-                StandardCharsets.UTF_8)
-                .replace("[mainClass]", ext.getMainClass());
+                StandardCharsets.UTF_8);
         Files.writeString(new File(dir, "entrypoint.sh").toPath(),
                 entrypointContent);
     }
 
-    private void generateDockerfile(File dir) throws IOException {
+    private void generateDockerfile(File dir, FenrirExtension ext) throws IOException {
         final String dockerfileContent = new String(Objects.requireNonNull(DockerImageTask.class
                 .getResourceAsStream("/Dockerfile-template")).readAllBytes(),
                 StandardCharsets.UTF_8)
-                .replace("[javaVersion]", getJavaVersion());
+                .replace("[javaVersion]", getJavaVersion())
+                .replace("[mainClass]", ext.getMainClass());
         Files.writeString(new File(dir, "Dockerfile").toPath(),
                 dockerfileContent);
     }

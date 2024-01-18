@@ -12,6 +12,7 @@ dependencies {
     implementation(libs.fenrir.http)
     implementation(libs.fenrir.rest)
     implementation(libs.fenrir.jpa)
+    runtimeOnly(libs.h2)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
 }
@@ -23,6 +24,6 @@ java {
 }
 
 fenrir {
-    mainClass = ""
+    mainClass = "io.github.gr3gdev.benchmark.fenrir.FenrirApp"
     imageName = "gr3gdev/benchmark-fenrir"
 }

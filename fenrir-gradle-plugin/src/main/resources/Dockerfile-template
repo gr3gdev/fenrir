@@ -24,5 +24,8 @@ RUN mkdir /libs
 COPY --from=customjre /work/customjre $JAVA_HOME
 COPY ./libs /libs
 COPY ./entrypoint.sh /bin/entrypoint
+
 RUN chmod +x /bin/entrypoint
+
 ENTRYPOINT [ "/bin/entrypoint" ]
+CMD ["java", "-cp", "/libs/", "[mainClass]"]

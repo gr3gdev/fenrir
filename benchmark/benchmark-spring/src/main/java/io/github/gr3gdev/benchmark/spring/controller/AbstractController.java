@@ -9,7 +9,7 @@ import java.util.Optional;
 public abstract class AbstractController<E> {
     protected final JpaRepository<E, Long> repository;
 
-    protected AbstractController(JpaRepository<E, Long> repository) {
+    public AbstractController(JpaRepository<E, Long> repository) {
         this.repository = repository;
     }
 

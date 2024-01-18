@@ -10,3 +10,8 @@ services:
     image: gr3gdev/benchmark-quarkus
     ports:
       - 9002:9002
+
+  benchmark-fenrir:
+    image: gr3gdev/benchmark-fenrir
+    ports:
+      - 9003:9003
