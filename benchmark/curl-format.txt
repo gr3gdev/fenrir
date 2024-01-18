@@ -1,11 +1,1 @@
-\n
-response_code: %{response_code}\n
------------------------------\n
-time_namelookup:    %{time_namelookup}s\n
-time_connect:       %{time_connect}s\n
-time_appconnect:    %{time_appconnect}s\n
-time_pretransfer:   %{time_pretransfer}s\n
-time_redirect:      %{time_redirect}s\n
-time_starttransfer: %{time_starttransfer}s\n
------------------------------\n
-time_total:         %{time_total}s\n
+, "report": {"response_code": "%{response_code}", "time_namelookup": "%{time_namelookup}s", "time_connect": "%{time_connect}s", "time_appconnect": "%{time_appconnect}s", "time_pretransfer": "%{time_pretransfer}s", "time_redirect": "%{time_redirect}s", "time_starttransfer": "%{time_starttransfer}s", "time_total": "%{time_total}s"}
