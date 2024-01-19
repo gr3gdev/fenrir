@@ -6,8 +6,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.IdClass;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.io.Serializable;
+import java.time.ZonedDateTime;
 
 @Entity
 @Data
@@ -19,6 +21,8 @@ public class Account {
     private String accountType;
     @Column
     private String name;
+    @CreationTimestamp
+    private ZonedDateTime createdDate;
 
     @AllArgsConstructor
     @Data

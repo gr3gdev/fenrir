@@ -1,8 +1,7 @@
 package io.github.gr3gdev.fenrir;
 
-import io.github.gr3gdev.fenrir.logger.Level;
-
 import java.text.MessageFormat;
+import java.util.logging.Level;
 
 /**
  * Fenrir Logger.
@@ -31,52 +30,52 @@ public class Logger {
     }
 
     /**
-     * Log a message with {@link Level#DEBUG}.
+     * Log a message with {@link Level#FINE}.
      *
      * @param message the string message format in java.text.MessageFormat format.
      * @param args    an optional list of parameters to the message (may be none).
      */
     public void debug(String message, Object... args) {
-        this.internalLogger.log(Level.DEBUG, new MessageFormat(message).format(args));
+        this.internalLogger.log(Level.FINE, new MessageFormat(message).format(args));
     }
 
     /**
-     * Log a message with {@link Level#WARN}.
+     * Log a message with {@link Level#WARNING}.
      *
      * @param message the string message format in java.text.MessageFormat format.
      * @param args    an optional list of parameters to the message (may be none).
      */
     public void warn(String message, Object... args) {
-        this.internalLogger.log(Level.WARN, new MessageFormat(message).format(args));
+        this.internalLogger.log(Level.WARNING, new MessageFormat(message).format(args));
     }
 
     /**
-     * Log a message with {@link Level#WARN}.
+     * Log a message with {@link Level#WARNING}.
      *
      * @param message the string message.
      * @param thrown  Throwable associated with log message.
      */
     public void warn(String message, Throwable thrown) {
-        this.internalLogger.log(Level.WARN, message, thrown);
+        this.internalLogger.log(Level.WARNING, message, thrown);
     }
 
     /**
-     * Log a message with {@link Level#ERROR}.
+     * Log a message with {@link Level#SEVERE}.
      *
      * @param message the string message format in java.text.MessageFormat format.
      * @param args    an optional list of parameters to the message (may be none).
      */
     public void error(String message, Object... args) {
-        this.internalLogger.log(Level.ERROR, new MessageFormat(message).format(args));
+        this.internalLogger.log(Level.SEVERE, new MessageFormat(message).format(args));
     }
 
     /**
-     * Log a message with {@link Level#ERROR}.
+     * Log a message with {@link Level#SEVERE}.
      *
      * @param message the string message.
      * @param thrown  Throwable associated with log message.
      */
     public void error(String message, Throwable thrown) {
-        this.internalLogger.log(Level.ERROR, message, thrown);
+        this.internalLogger.log(Level.SEVERE, message, thrown);
     }
 }

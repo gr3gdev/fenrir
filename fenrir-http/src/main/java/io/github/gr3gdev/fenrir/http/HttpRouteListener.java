@@ -55,7 +55,7 @@ public final class HttpRouteListener implements RouteListener {
             }
             output.flush();
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 }

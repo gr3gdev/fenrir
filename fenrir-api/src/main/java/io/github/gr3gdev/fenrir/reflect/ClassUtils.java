@@ -2,10 +2,9 @@ package io.github.gr3gdev.fenrir.reflect;
 
 import lombok.SneakyThrows;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
+import java.lang.reflect.*;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class ClassUtils {
 
@@ -14,12 +13,55 @@ public class ClassUtils {
     }
 
     public static Constructor<?> findConstructor(Class<?> objectClass) {
-        final Constructor<?>[] constructors = objectClass.getDeclaredConstructors();
+        final Constructor<?>[] constructors = objectClass.getConstructors();
         if (constructors.length == 1) {
             return constructors[0];
         } else {
             throw new RuntimeException("Only one constructor is supported for " + objectClass.getCanonicalName());
         }
+    }
+
+    /**
+     * Find generic classes of the method's parameters.
+     *
+     * @param method         the method
+     * @param genericClasses this generic classes of the class (E : Class<E>)
+     * @return Map (parameter name : parameter class)
+     */
+    public static Map<String, Class<?>> findGenericClasses(Method method, Map<String, Class<?>> genericClasses) {
+        final LinkedList<String> genericParameterTypes = Arrays.stream(method.getGenericParameterTypes())
+                .map(Type::getTypeName)
+                .collect(Collectors.toCollection(LinkedList::new));
+        final Iterator<String> iterator = genericParameterTypes.iterator();
+        return Arrays.stream(method.getParameters())
+                .collect(Collectors.toMap(Parameter::getName, p -> {
+                    Class<?> pClass = genericClasses.get(iterator.next());
+                    if (pClass == null) {
+                        pClass = p.getType();
+                    }
+                    return pClass;
+                }));
+    }
+
+    /**
+     * Find generic classes of the class.
+     *
+     * @param objectClass the object class
+     * @return Map (generic name : generic real class)
+     */
+    public static Map<String, Class<?>> findGenericClasses(Class<?> objectClass) {
+        final Class<?> superClass = objectClass.getSuperclass();
+        final TypeVariable<? extends Class<?>>[] typeParameters = superClass.getTypeParameters();
+        final Type superClassType = objectClass.getGenericSuperclass();
+        if (superClassType instanceof ParameterizedType superClassParameterizedType) {
+            final Type[] typeArguments = superClassParameterizedType.getActualTypeArguments();
+            final Map<String, Class<?>> parametersRealType = new HashMap<>();
+            for (int idx = 0; idx < typeArguments.length; idx++) {
+                parametersRealType.put(typeParameters[idx].getName(), (Class<?>) typeArguments[idx]);
+            }
+            return parametersRealType;
+        }
+        return Map.of();
     }
 
     @SneakyThrows
@@ -40,11 +82,11 @@ public class ClassUtils {
 
     @SneakyThrows
     public static Method findGetter(Class<?> clazz, String fieldName) {
-        return clazz.getDeclaredMethod("get" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1));
+        return clazz.getMethod("get" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1));
     }
 
     @SneakyThrows
     public static Method findSetter(Class<?> clazz, String fieldName) {
-        return clazz.getDeclaredMethod("set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1));
+        return clazz.getMethod("set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1));
     }
 }

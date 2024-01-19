@@ -10,7 +10,6 @@ import io.github.gr3gdev.fenrir.http.HttpStatus;
 import io.github.gr3gdev.fenrir.plugin.Plugin;
 import io.github.gr3gdev.fenrir.plugin.impl.FileLoaderPlugin;
 import io.github.gr3gdev.fenrir.plugin.impl.HttpSocketPlugin;
-import io.github.gr3gdev.fenrir.reflect.ClassUtils;
 import io.github.gr3gdev.fenrir.reflect.PackageUtils;
 import io.github.gr3gdev.fenrir.socket.HttpSocketEvent;
 import io.github.gr3gdev.fenrir.socket.HttpSocketReader;
@@ -49,11 +48,10 @@ public class HttpMode implements Mode<HttpSocketEvent> {
 
     private Set<HttpSocketEvent> findSocketEvents(final Map<Class<?>, Plugin> plugins, Class<?> routeClass) {
         final Route route = routeClass.getAnnotation(Route.class);
-        final Object routeInstance = ClassUtils.newInstance(routeClass);
         final HttpSocketPlugin<?> plugin = (HttpSocketPlugin<?>) plugins.get(route.plugin());
-        return Arrays.stream(routeClass.getDeclaredMethods())
+        return Arrays.stream(routeClass.getMethods())
                 .filter(m -> m.isAnnotationPresent(Listener.class))
-                .map(m -> mapMethodToSocketEvent(route.path(), routeInstance, m, plugin))
+                .map(m -> mapMethodToSocketEvent(route.path(), routeClass, m, plugin))
                 .collect(Collectors.toSet());
     }
 
@@ -62,14 +60,14 @@ public class HttpMode implements Mode<HttpSocketEvent> {
         return completePath.replace("//", "/");
     }
 
-    private HttpSocketEvent mapMethodToSocketEvent(String parentPath, Object instance, Method m, HttpSocketPlugin<?> plugin) {
+    private HttpSocketEvent mapMethodToSocketEvent(String parentPath, Class<?> routeClass, Method m, HttpSocketPlugin<?> plugin) {
         final Listener listenerAnnotation = m.getAnnotation(Listener.class);
         final Map<String, Object> properties = Map.of(
                 CONTENT_TYPE, listenerAnnotation.contentType(),
                 RESPONSE_CODE, listenerAnnotation.responseCode()
         );
         final HttpRouteListener routeListener = new HttpRouteListener(
-                (req) -> plugin.process(instance, m, req, properties));
+                (req) -> plugin.process(routeClass, m, req, properties));
         return new HttpSocketEvent(constructPath(parentPath, listenerAnnotation.path()), listenerAnnotation.method(), routeListener);
     }
 

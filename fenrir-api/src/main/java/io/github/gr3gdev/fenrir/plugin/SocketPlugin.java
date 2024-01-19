@@ -15,26 +15,29 @@ import java.util.Map;
 public abstract class SocketPlugin<M, RQ extends Request, RS extends Response> implements Plugin {
 
     @SuppressWarnings("unchecked")
-    public final RS process(Object instance, Method method, RQ request, Map<String, Object> properties) {
+    public final RS process(Class<?> routeClass, Method method, RQ request, Map<String, Object> properties) {
+        final Map<String, Class<?>> genericClasses = ClassUtils.findGenericClasses(routeClass);
+        final Object routeInstance = ClassUtils.newInstance(routeClass);
+        final Map<String, Class<?>> parameterClasses = ClassUtils.findGenericClasses(method, genericClasses);
         final Object[] parameterValues = Arrays.stream(method.getParameters())
-                .map(p -> extractParameter(p, request))
+                .map(p -> extractParameter(p, request, parameterClasses.get(p.getName())))
                 .toArray(Object[]::new);
         try {
-            final Object methodReturn = method.invoke(instance, parameterValues);
+            final Object methodReturn = method.invoke(routeInstance, parameterValues);
             return process((M) methodReturn, properties);
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
     }
 
-    Object extractParameter(Parameter parameter, RQ request) {
+    Object extractParameter(Parameter parameter, RQ request, Class<?> parameterClass) {
         if (parameter.isAnnotationPresent(Param.class)) {
             final Param param = parameter.getAnnotation(Param.class);
             return request.param(param.value())
-                    .map(value -> mapToParameterType(value, parameter.getType()))
+                    .map(value -> mapToParameterType(value, parameterClass))
                     .orElse(null);
         } else if (parameter.isAnnotationPresent(Body.class)) {
-            return extractBody(parameter, request);
+            return extractBody(parameterClass, request);
         } else {
             return null;
         }
@@ -51,12 +54,12 @@ public abstract class SocketPlugin<M, RQ extends Request, RS extends Response> i
         throw new RuntimeException("Parameter type " + type.getCanonicalName() + " is not yet implemented");
     }
 
-    protected Object extractBody(Parameter parameter, RQ request) {
-        final Object parameterInstance = ClassUtils.newInstance(parameter.getType());
-        Arrays.stream(parameter.getType().getDeclaredFields())
+    protected Object extractBody(Class<?> parameterClass, RQ request) {
+        final Object parameterInstance = ClassUtils.newInstance(parameterClass);
+        Arrays.stream(parameterClass.getDeclaredFields())
                 .forEach(field -> {
                     try {
-                        ClassUtils.findSetter(parameter.getType(), field.getName())
+                        ClassUtils.findSetter(parameterClass, field.getName())
                                 .invoke(parameterInstance,
                                         request.param(field.getName()).orElse(null));
                     } catch (IllegalAccessException | InvocationTargetException e) {
