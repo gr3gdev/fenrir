@@ -13,13 +13,19 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+/**
+ * The entity manager factory.
+ */
 @RequiredArgsConstructor
-public class FenrirEntityManagerFactory {
+class FenrirEntityManagerFactory {
 
     private final List<Class<?>> entityClasses;
     private final Properties fenrirProperties;
 
-    public EntityManager getEntityManager() {
+    /**
+     * @return EntityManager
+     */
+    EntityManager getEntityManager() {
         return getEntityManagerFactory().createEntityManager();
     }
 

@@ -1,26 +1,20 @@
 package io.github.gr3gdev.fenrir.http.impl;
 
+import io.github.gr3gdev.fenrir.http.HttpRequest;
+import io.github.gr3gdev.fenrir.http.RemoteAddress;
+import lombok.SneakyThrows;
+
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.github.gr3gdev.fenrir.http.RemoteAddress;
-import io.github.gr3gdev.fenrir.http.HttpRequest;
-
 /**
- * RequestImpl.
- *
- * @author Gregory Tardivel
+ * HTTP implementation of {@link io.github.gr3gdev.fenrir.Request}.
  */
 public class HttpRequestImpl implements HttpRequest {
 
@@ -31,7 +25,14 @@ public class HttpRequestImpl implements HttpRequest {
     private String path = "";
     private String protocol = "";
 
-    public HttpRequestImpl(String remoteAddress, InputStream input) throws IOException {
+    /**
+     * Constructor.
+     *
+     * @param remoteAddress the remote address
+     * @param input         the input stream of the socket
+     */
+    @SneakyThrows
+    public HttpRequestImpl(String remoteAddress, InputStream input) {
         this.remoteAddress = remoteAddress;
         final BufferedReader reader = new BufferedReader(new InputStreamReader(input));
         final String requestLine = reader.readLine();
@@ -57,41 +58,65 @@ public class HttpRequestImpl implements HttpRequest {
         ReaderUtil.loadParameters(this, pathParameters, reader);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String path() {
         return this.path;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String method() {
         return this.httpMethod;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String protocol() {
         return this.protocol;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Optional<String> headers(String key) {
         return Optional.ofNullable(this.headers.get(key.toLowerCase()));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void headers(String key, String value) {
         this.headers.put(key.toLowerCase(), value);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Set<String> headersNames() {
         return this.headers.keySet();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Optional<String> param(String key) {
         return Optional.ofNullable(this.parameters.get(key.toLowerCase()));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void params(Stream<String> keys, Consumer<Map<String, String>> action) {
         final Map<String, String> values = keys
@@ -99,16 +124,25 @@ public class HttpRequestImpl implements HttpRequest {
         action.accept(values);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void params(String key, String value) {
         this.parameters.put(key.toLowerCase(), value);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Set<String> paramsNames() {
         return this.parameters.keySet();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public RemoteAddress remoteAddress() {
         return new RemoteAddressImpl(this.remoteAddress);

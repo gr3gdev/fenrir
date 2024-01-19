@@ -18,11 +18,23 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * HTTP Mode (for example : application server, REST API).
+ */
 public class HttpMode implements Mode<HttpSocketEvent> {
 
+    /**
+     * Property : Content-Type.
+     */
     public static final String CONTENT_TYPE = "Content-Type";
+    /**
+     * Property : Http-Code.
+     */
     public static final String RESPONSE_CODE = "Http-Code";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Set<HttpSocketEvent> init(Class<?> mainClass, Map<Class<?>, Plugin> plugins) {
         final FileLoaderPlugin fileLoaderPlugin = new FileLoaderPlugin();
@@ -71,6 +83,9 @@ public class HttpMode implements Mode<HttpSocketEvent> {
         return new HttpSocketEvent(constructPath(parentPath, listenerAnnotation.path()), listenerAnnotation.method(), routeListener);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Class<? extends SocketReader> getSocketReaderClass() {
         return HttpSocketReader.class;

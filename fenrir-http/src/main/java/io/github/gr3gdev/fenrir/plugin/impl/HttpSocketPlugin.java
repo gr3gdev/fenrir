@@ -9,13 +9,28 @@ import lombok.Getter;
 
 import java.util.Map;
 
+/**
+ * An abstract implementation of {@link SocketPlugin} for {@link HttpMode}.
+ *
+ * @param <T> the method return
+ */
 public abstract class HttpSocketPlugin<T> extends SocketPlugin<T, HttpRequest, HttpResponse> {
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public HttpResponse process(T methodReturn, Map<String, Object> properties) {
         return process(methodReturn, (HttpStatus) properties.get(HttpMode.RESPONSE_CODE), (String) properties.get(HttpMode.CONTENT_TYPE));
     }
 
+    /**
+     * Convert the method's return to a String value to be written in the response.
+     *
+     * @param methodReturn the method return
+     * @return String
+     * @throws HttpSocketException exception thrown when the conversion is impossible or invalid
+     */
     protected abstract String toString(T methodReturn) throws HttpSocketException;
 
     HttpResponse process(T methodReturn, HttpStatus responseCode, String contentType) {
@@ -26,10 +41,19 @@ public abstract class HttpSocketPlugin<T> extends SocketPlugin<T, HttpRequest, H
         }
     }
 
+    /**
+     * An exception to throw when method return conversion is impossible or invalid.
+     */
     @Getter
     public static class HttpSocketException extends Exception {
         private final HttpStatus returnStatus;
 
+        /**
+         * Constructor.
+         *
+         * @param message      the error message
+         * @param returnStatus the Http status to use
+         */
         public HttpSocketException(String message, HttpStatus returnStatus) {
             super(message);
             this.returnStatus = returnStatus;

@@ -18,6 +18,9 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
+/**
+ * Internal server.
+ */
 @NoArgsConstructor
 final class Server {
 
@@ -35,7 +38,7 @@ final class Server {
     @Delegate(types = AddStartupEvent.class)
     private final List<Consumer<StartupEvent>> startupEvents = new LinkedList<>();
 
-    public void run(Instant start) {
+    void run(Instant start) {
         try {
             active.set(true);
             final byte[] banner = Objects.requireNonNull(getClass().getResourceAsStream("/banner.txt")).readAllBytes();
@@ -83,7 +86,7 @@ final class Server {
         }
     }
 
-    public void addEvents(Set<? extends SocketEvent> socketEvents, Class<? extends SocketReader> socketReaderClass) {
+    void addEvents(Set<? extends SocketEvent> socketEvents, Class<? extends SocketReader> socketReaderClass) {
         this.socketEvents = socketEvents;
         this.socketReaderClass = socketReaderClass;
     }

@@ -4,9 +4,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.gr3gdev.fenrir.http.HttpRequest;
 
+/**
+ * Implementation {@link HttpSocketPlugin}, convert return method and parameters into JSON.
+ */
 public class JsonPlugin extends HttpSocketPlugin<Object> {
     private final ObjectMapper mapper = new ObjectMapper();
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected Object extractBody(Class<?> parameterClass, HttpRequest request) {
         return request.param("body").map(b -> {
@@ -18,6 +24,9 @@ public class JsonPlugin extends HttpSocketPlugin<Object> {
         }).orElse(null);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected String toString(Object methodReturn) {
         if (methodReturn != null) {

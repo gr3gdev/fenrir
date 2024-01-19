@@ -12,7 +12,6 @@ dependencies {
 
     implementation(project(":fenrir-api"))
     implementation(project(":fenrir-http"))
-    implementation(project(":fenrir-rest"))
     implementation(project(":fenrir-jpa"))
     implementation(project(":fenrir-thymeleaf"))
 

@@ -11,9 +11,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Response.
- *
- * @author Gregory Tardivel
+ * Implementation for HTTP response.
  */
 @Getter
 public class HttpResponse implements Response {
@@ -87,6 +85,9 @@ public class HttpResponse implements Response {
         }
     }
 
+    /**
+     * HTTP Cookie.
+     */
     @RequiredArgsConstructor
     @Getter
     @Setter
@@ -100,6 +101,9 @@ public class HttpResponse implements Response {
         private Boolean httpOnly = true;
         private CookieSameSite sameSite = CookieSameSite.LAX;
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public String toString() {
             final StringBuilder builder = new StringBuilder(name)

@@ -14,7 +14,30 @@ import java.util.function.Function;
 import java.util.logging.LogManager;
 import java.util.stream.Collectors;
 
+/**
+ * Create a Fenrir application in a main method.
+ * <p>
+ * Example with fenrir-http :
+ * <pre>{@code
+ * @FenrirConfiguration(modes = {HttpMode.class})
+ * public class MyApp {
+ *     public static void main(String[] args) {
+ *         FenrirApplication.run(MyApp.class);
+ *     }
+ * }
+ * }</pre>
+ */
 public final class FenrirApplication {
+
+    private FenrirApplication() {
+        // None
+    }
+
+    /**
+     * Run the server.
+     *
+     * @param mainClass the main class (used for reflection)
+     */
     public static void run(final Class<?> mainClass) {
         if (mainClass.isAnnotationPresent(FenrirConfiguration.class)) {
             try {

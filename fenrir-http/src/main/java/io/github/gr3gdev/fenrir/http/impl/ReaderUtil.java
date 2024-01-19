@@ -1,20 +1,18 @@
 package io.github.gr3gdev.fenrir.http.impl;
 
+import io.github.gr3gdev.fenrir.http.HttpRequest;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.StringTokenizer;
 
-import io.github.gr3gdev.fenrir.http.HttpRequest;
-
 /**
- * ReaderUtil.
- *
- * @author Gregory Tardivel
+ * Utils for read the input stream of the server socket.
  */
-public class ReaderUtil {
+class ReaderUtil {
 
-    public static void loadHeaders(HttpRequest request, BufferedReader pReader) throws IOException {
+    static void loadHeaders(HttpRequest request, BufferedReader pReader) throws IOException {
         String headerLine = pReader.readLine();
         while (headerLine != null && !headerLine.isBlank()) {
             final StringTokenizer hTokens = new StringTokenizer(headerLine, ":");
@@ -28,7 +26,7 @@ public class ReaderUtil {
         }
     }
 
-    public static void loadParameters(HttpRequest request, String pathParameters, BufferedReader pReader)
+    static void loadParameters(HttpRequest request, String pathParameters, BufferedReader pReader)
             throws IOException {
         final Optional<String> contentType = request.headers("Content-Type");
         final StringBuilder payload = new StringBuilder();

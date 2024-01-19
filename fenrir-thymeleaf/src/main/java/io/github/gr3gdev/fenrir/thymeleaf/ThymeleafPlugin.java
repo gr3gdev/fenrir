@@ -7,10 +7,16 @@ import org.thymeleaf.messageresolver.StandardMessageResolver;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
+/**
+ * Implementation of {@link HttpSocketPlugin}, execute {@link TemplateEngine} for thymeleaf rendering.
+ */
 public class ThymeleafPlugin extends HttpSocketPlugin<ThymeleafResponse> {
 
     private static final TemplateEngine templateEngine = new TemplateEngine();
 
+    /**
+     * Default constructor.
+     */
     public ThymeleafPlugin() {
         final ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver(
                 Thread.currentThread().getContextClassLoader());
@@ -31,6 +37,9 @@ public class ThymeleafPlugin extends HttpSocketPlugin<ThymeleafResponse> {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected String toString(ThymeleafResponse methodReturn) {
         return templateEngine.process(methodReturn.page(),

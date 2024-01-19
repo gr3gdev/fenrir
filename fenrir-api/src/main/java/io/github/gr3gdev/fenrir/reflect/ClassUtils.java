@@ -6,12 +6,21 @@ import java.lang.reflect.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ClassUtils {
+/**
+ * Utils for class manipulations.
+ */
+public final class ClassUtils {
 
     private ClassUtils() {
         // None
     }
 
+    /**
+     * Find the constructor (by reflection).
+     *
+     * @param objectClass the object class
+     * @return Constructor
+     */
     public static Constructor<?> findConstructor(Class<?> objectClass) {
         final Constructor<?>[] constructors = objectClass.getConstructors();
         if (constructors.length == 1) {
@@ -22,7 +31,7 @@ public class ClassUtils {
     }
 
     /**
-     * Find generic classes of the method's parameters.
+     * Find generic classes of the method's parameters (by reflection).
      *
      * @param method         the method
      * @param genericClasses this generic classes of the class (E : Class<E>)
@@ -44,7 +53,7 @@ public class ClassUtils {
     }
 
     /**
-     * Find generic classes of the class.
+     * Find generic classes of the class (by reflection).
      *
      * @param objectClass the object class
      * @return Map (generic name : generic real class)
@@ -64,6 +73,13 @@ public class ClassUtils {
         return Map.of();
     }
 
+    /**
+     * Create a new instance of an object (by reflection).
+     *
+     * @param objectClass     the object class
+     * @param parameterValues the parameter values
+     * @return Object
+     */
     @SneakyThrows
     public static Object newInstance(Class<?> objectClass, Object... parameterValues) {
         final Constructor<?> constructor = findConstructor(objectClass);
@@ -80,13 +96,27 @@ public class ClassUtils {
         }
     }
 
+    /**
+     * Find the getter method (by reflection).
+     *
+     * @param objectClass the object class
+     * @param fieldName   the field name
+     * @return Method
+     */
     @SneakyThrows
-    public static Method findGetter(Class<?> clazz, String fieldName) {
-        return clazz.getMethod("get" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1));
+    public static Method findGetter(Class<?> objectClass, String fieldName) {
+        return objectClass.getMethod("get" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1));
     }
 
+    /**
+     * Find the setter method (by reflection).
+     *
+     * @param objectClass the object class
+     * @param fieldName   the field name
+     * @return Method
+     */
     @SneakyThrows
-    public static Method findSetter(Class<?> clazz, String fieldName) {
-        return clazz.getMethod("set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1));
+    public static Method findSetter(Class<?> objectClass, String fieldName) {
+        return objectClass.getMethod("set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1));
     }
 }

@@ -1,5 +1,10 @@
 package io.github.gr3gdev.fenrir.http;
 
+import io.github.gr3gdev.fenrir.Request;
+import io.github.gr3gdev.fenrir.Response;
+import io.github.gr3gdev.fenrir.RouteListener;
+import lombok.RequiredArgsConstructor;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -7,15 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-import io.github.gr3gdev.fenrir.Request;
-import io.github.gr3gdev.fenrir.Response;
-import io.github.gr3gdev.fenrir.RouteListener;
-import lombok.RequiredArgsConstructor;
-
 /**
- * RouteListener.
- *
- * @author Gregory Tardivel
+ * Implementation for HTTP RouteListener.
  */
 @RequiredArgsConstructor
 public final class HttpRouteListener implements RouteListener {
@@ -41,8 +39,8 @@ public final class HttpRouteListener implements RouteListener {
     /**
      * Execute RouteListener.
      *
-     * @param request HTTP Request
-     * @param output  Output stream for HTTP response
+     * @param request the request
+     * @param output  output stream for HTTP response
      */
     @Override
     public void handleEvent(Request request, OutputStream output) {

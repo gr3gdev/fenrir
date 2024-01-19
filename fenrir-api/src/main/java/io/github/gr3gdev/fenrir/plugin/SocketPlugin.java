@@ -12,8 +12,24 @@ import java.lang.reflect.Parameter;
 import java.util.Arrays;
 import java.util.Map;
 
+/**
+ * Abstract class for {@link Plugin} resolution of responses.
+ *
+ * @param <M>  method return type (the response)
+ * @param <RQ> the request implementation
+ * @param <RS> the response implementation
+ */
 public abstract class SocketPlugin<M, RQ extends Request, RS extends Response> implements Plugin {
 
+    /**
+     * Process a request and return a response.
+     *
+     * @param routeClass the route class
+     * @param method     the method called
+     * @param request    the request
+     * @param properties properties for Content-Type, Http Code for response, ...
+     * @return Response
+     */
     @SuppressWarnings("unchecked")
     public final RS process(Class<?> routeClass, Method method, RQ request, Map<String, Object> properties) {
         final Map<String, Class<?>> genericClasses = ClassUtils.findGenericClasses(routeClass);
@@ -54,6 +70,13 @@ public abstract class SocketPlugin<M, RQ extends Request, RS extends Response> i
         throw new RuntimeException("Parameter type " + type.getCanonicalName() + " is not yet implemented");
     }
 
+    /**
+     * Extract the parameter value in the request and convert it.
+     *
+     * @param parameterClass the parameter class
+     * @param request        the request
+     * @return Object (parameter value)
+     */
     protected Object extractBody(Class<?> parameterClass, RQ request) {
         final Object parameterInstance = ClassUtils.newInstance(parameterClass);
         Arrays.stream(parameterClass.getDeclaredFields())
@@ -69,5 +92,12 @@ public abstract class SocketPlugin<M, RQ extends Request, RS extends Response> i
         return parameterInstance;
     }
 
+    /**
+     * Process the response with the method return value.
+     *
+     * @param methodReturn the method return value
+     * @param properties   properties for Content-Type, Http Code for response, ...
+     * @return Response
+     */
     public abstract RS process(M methodReturn, Map<String, Object> properties);
 }

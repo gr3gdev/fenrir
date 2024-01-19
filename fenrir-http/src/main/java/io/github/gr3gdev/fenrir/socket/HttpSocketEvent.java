@@ -1,10 +1,5 @@
 package io.github.gr3gdev.fenrir.socket;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import io.github.gr3gdev.fenrir.Request;
 import io.github.gr3gdev.fenrir.event.SocketEvent;
 import io.github.gr3gdev.fenrir.http.HttpMethod;
@@ -12,6 +7,14 @@ import io.github.gr3gdev.fenrir.http.HttpRequest;
 import io.github.gr3gdev.fenrir.http.HttpRouteListener;
 import lombok.Getter;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+/**
+ * Implementation of {@link SocketEvent} for Http.
+ */
 public final class HttpSocketEvent implements SocketEvent {
 
     @Getter
@@ -21,6 +24,13 @@ public final class HttpSocketEvent implements SocketEvent {
     private final Map<Integer, String> pathParameters = new HashMap<>();
     private String patternPath;
 
+    /**
+     * Constructor.
+     *
+     * @param path          the path to intercept
+     * @param method        the method to intercept
+     * @param routeListener the listener to execute if path and method match
+     */
     public HttpSocketEvent(String path, HttpMethod method, HttpRouteListener routeListener) {
         this.method = method;
         this.routeListener = routeListener;
@@ -36,6 +46,9 @@ public final class HttpSocketEvent implements SocketEvent {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean match(Request request) {
         final HttpRequest httpRequest = (HttpRequest) request;

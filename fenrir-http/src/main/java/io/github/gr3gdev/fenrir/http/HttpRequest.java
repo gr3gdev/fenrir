@@ -1,84 +1,88 @@
 package io.github.gr3gdev.fenrir.http;
 
+import io.github.gr3gdev.fenrir.Request;
+
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-import io.github.gr3gdev.fenrir.Request;
-
 /**
- * Interface for requests.
- *
- * @author Gregory Tardivel
+ * Interface for HTTP request.
  */
 public interface HttpRequest extends Request {
 
     /**
      * Path URL.
      *
-     * @return path
+     * @return String
      */
     String path();
 
     /**
      * HTTP Method.
      *
-     * @return method
+     * @return String
      */
     String method();
 
     /**
      * HTTP Protocol.
      *
-     * @return protocol
+     * @return String
      */
     String protocol();
 
     /**
-     * Get HTTP Request Headers.
+     * Get HTTP Request headers values.
      *
-     * @return headers
+     * @return Optional of String
      */
     Optional<String> headers(String key);
 
     /**
      * Put HTTP Request Headers.
      *
-     * @return headers
+     * @param key   the key to add
+     * @param value the value to add
      */
     void headers(String key, String value);
 
     /**
      * Get HTTP Request Headers names.
+     *
+     * @return Set of String
      */
     Set<String> headersNames();
 
     /**
-     * Get HTTP Request Parameters.
+     * Execute a consumer action.
      *
-     * @param keys   Parameter keys
-     * @param action Action to execute with parameters
+     * @param keys   parameter keys
+     * @param action action to execute with parameters
      */
     void params(Stream<String> keys, Consumer<Map<String, String>> action);
 
     /**
-     * Put HTTP Request Parameters.
+     * Put HTTP Request parameters.
      *
-     * @return params
+     * @param key   the key to add
+     * @param value the value to add
      */
     void params(String key, String value);
 
     /**
-     * Get HTTP Request Parameters names.
+     * Get HTTP Request parameters names.
+     *
+     * @return Set of String
      */
     Set<String> paramsNames();
 
     /**
      * Client remote address.
      *
-     * @return remoteAddress
+     * @return RemoteAddress
      */
     RemoteAddress remoteAddress();
 

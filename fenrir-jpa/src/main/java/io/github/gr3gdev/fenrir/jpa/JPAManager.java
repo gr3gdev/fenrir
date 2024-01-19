@@ -15,6 +15,9 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * Manager for JPA.
+ */
 public final class JPAManager {
 
     private static FenrirEntityManagerFactory entityManagerFactory;
@@ -24,6 +27,11 @@ public final class JPAManager {
         // None
     }
 
+    /**
+     * Initialize the entities.
+     *
+     * @param mainClass the main class (for reflection)
+     */
     public static void init(Class<?> mainClass) {
         if (entityManagerFactory == null) {
             final List<Class<?>> entityClasses = PackageUtils.findAnnotatedClasses(mainClass, Entity.class);
@@ -38,6 +46,9 @@ public final class JPAManager {
         }
     }
 
+    /**
+     * @return EntityManager
+     */
     public static EntityManager entityManager() {
         return entityManager;
     }

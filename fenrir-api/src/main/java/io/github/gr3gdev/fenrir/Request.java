@@ -3,16 +3,15 @@ package io.github.gr3gdev.fenrir;
 import java.util.Optional;
 
 /**
- * Interface for requests.
- *
- * @author Gregory Tardivel
+ * Interface for request receive by the server.
  */
 public interface Request {
 
     /**
-     * Get Request Parameter value.
+     * Get the request parameter value.
      *
-     * @return params
+     * @param key the key of the parameter
+     * @return parameter value
      */
     Optional<String> param(String key);
 

@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Properties;
 
 @Data
-public class FenrirPersistenceUnitInfo implements PersistenceUnitInfo {
+class FenrirPersistenceUnitInfo implements PersistenceUnitInfo {
 
     public static final String JPA_VERSION = "3.1";
 
@@ -35,20 +35,22 @@ public class FenrirPersistenceUnitInfo implements PersistenceUnitInfo {
     private ClassLoader classLoader;
     private ClassLoader newTempClassLoader;
 
-    public FenrirPersistenceUnitInfo(String name, List<String> managedClassNames, Properties properties) {
+    FenrirPersistenceUnitInfo(String name, List<String> managedClassNames, Properties properties) {
         this.persistenceUnitName = name;
         this.managedClassNames = managedClassNames;
         this.properties = properties;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean excludeUnlistedClasses() {
         return false;
     }
 
     /**
-     * @param transformer provider-supplied transformer that the
-     *                    container invokes at class-(re)definition time
+     * {@inheritDoc}
      */
     @Override
     public void addTransformer(ClassTransformer transformer) {

@@ -9,14 +9,27 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Set;
 
+/**
+ * Class used for read a socket {@link InputStream} (Threadable).
+ */
 @RequiredArgsConstructor
 public abstract class SocketReader implements Runnable {
 
     private final Socket socket;
     private final Set<SocketEvent> socketEvents;
 
+    /**
+     * Create a new request.
+     *
+     * @param remoteAddress the remote address (cf. InetSocketAddress#toString)
+     * @param input         the {@link InputStream} of the socket
+     * @return Request
+     */
     protected abstract Request newRequest(String remoteAddress, InputStream input);
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void run() {
         // Request

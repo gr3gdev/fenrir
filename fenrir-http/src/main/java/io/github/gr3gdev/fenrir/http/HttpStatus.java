@@ -5,8 +5,6 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * HttpStatus.
- *
- * @author Gregory Tardivel
  */
 @RequiredArgsConstructor
 @Getter

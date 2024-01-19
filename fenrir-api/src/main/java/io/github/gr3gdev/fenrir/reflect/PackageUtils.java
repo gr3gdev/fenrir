@@ -11,6 +11,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Utils for package manipulations.
+ */
 public class PackageUtils {
 
     private PackageUtils() {
@@ -37,6 +40,13 @@ public class PackageUtils {
         }
     }
 
+    /**
+     * Find all classes with an annotation in the package (and children) of the main class (by reflection).
+     *
+     * @param mainClass       the main class
+     * @param annotationClass the annotation class
+     * @return List of Class
+     */
     public static List<Class<?>> findAnnotatedClasses(Class<?> mainClass, Class<? extends Annotation> annotationClass) {
         return findClasses(mainClass,
                 c -> c.isAnnotationPresent(annotationClass),

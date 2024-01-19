@@ -7,8 +7,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * Implementation of {@link HttpSocketPlugin}, the method must return a file path (in classpath).
+ */
 public class FileLoaderPlugin extends HttpSocketPlugin<String> {
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected String toString(String methodReturn) throws HttpSocketException {
         final File file = new File(methodReturn);
@@ -29,7 +35,7 @@ public class FileLoaderPlugin extends HttpSocketPlugin<String> {
 
         private final String path;
 
-        public File(String path) {
+        File(String path) {
             if (path.startsWith("/")) {
                 this.path = path.substring(1);
             } else {
