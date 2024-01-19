@@ -18,3 +18,4 @@ rootProject.name = "benchmark"
 include("benchmark-spring")
 include("benchmark-quarkus")
 include("benchmark-fenrir")
+include("tests")

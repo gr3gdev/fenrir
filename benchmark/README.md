@@ -57,8 +57,11 @@ Do 10 times
 
 ## Compare
 
-| Framework | Docker Size | Start time (min, max, average) | Request time (GET) | Request time (POST) | Request time (PUT) | Request time (DELETE) |
-|-----------|-------------|--------------------------------|--------------------|---------------------|--------------------|-----------------------|
-| Spring    | 374MB       | 3.41 seconds                   |                    |                     |                    |                       |
-| Quarkus   | 489MB       | 1.65 seconds                   |                    |                     |                    |                       |
-| Fenrir    | 122MB       | 1.29 seconds                   |                    |                     |                    |                       |
+| Framework            | Spring | Quarkus | Fenrir |
+|----------------------|--------|---------|--------|
+| Docker size          | 374MB  | 489MB   | 122MB  |
+| Start time (min)     |        |         |        |
+| Start time (max)     |        |         |        |
+| Start time (average) |        |         |        |
+|                      |        |         |        |
+|                      |        |         |        |
