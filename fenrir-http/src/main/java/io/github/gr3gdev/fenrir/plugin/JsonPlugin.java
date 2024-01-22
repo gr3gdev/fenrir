@@ -1,4 +1,4 @@
-package io.github.gr3gdev.fenrir.plugin.impl;
+package io.github.gr3gdev.fenrir.plugin;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

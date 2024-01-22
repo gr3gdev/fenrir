@@ -1,6 +1,6 @@
 package io.github.gr3gdev.fenrir.thymeleaf;
 
-import io.github.gr3gdev.fenrir.plugin.impl.HttpSocketPlugin;
+import io.github.gr3gdev.fenrir.plugin.HttpSocketPlugin;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.AbstractContext;
 import org.thymeleaf.messageresolver.StandardMessageResolver;

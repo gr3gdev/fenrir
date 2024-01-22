@@ -112,7 +112,7 @@ class FenrirGradlePluginPluginFunctionalTest {
 
                 import io.github.gr3gdev.fenrir.annotation.Listener;
                 import io.github.gr3gdev.fenrir.annotation.Route;
-                import io.github.gr3gdev.fenrir.plugin.impl.FileLoaderPlugin;
+                import io.github.gr3gdev.fenrir.plugin.FileLoaderPlugin;
 
                 @Route(plugin = FileLoaderPlugin.class)
                 public class TestRoute {

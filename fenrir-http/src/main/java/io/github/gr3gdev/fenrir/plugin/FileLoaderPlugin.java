@@ -1,4 +1,4 @@
-package io.github.gr3gdev.fenrir.plugin.impl;
+package io.github.gr3gdev.fenrir.plugin;
 
 import io.github.gr3gdev.fenrir.Logger;
 import io.github.gr3gdev.fenrir.http.HttpStatus;

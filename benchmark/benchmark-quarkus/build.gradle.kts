@@ -1,3 +1,5 @@
+import io.quarkus.gradle.tasks.ImageBuild
+
 plugins {
     java
     id("io.quarkus")
@@ -35,6 +37,14 @@ java {
 tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
     options.compilerArgs.add("-parameters")
+}
+
+tasks.named("quarkusDependenciesBuild") {
+    dependsOn("jandex")
+}
+
+tasks.named("imageBuild") {
+    mustRunAfter("jandex")
 }
 
 project.ext {

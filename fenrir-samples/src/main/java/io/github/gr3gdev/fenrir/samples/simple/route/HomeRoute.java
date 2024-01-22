@@ -1,7 +1,7 @@
 package io.github.gr3gdev.fenrir.samples.simple.route;
 
 import io.github.gr3gdev.fenrir.annotation.Route;
-import io.github.gr3gdev.fenrir.plugin.impl.FileLoaderPlugin;
+import io.github.gr3gdev.fenrir.plugin.FileLoaderPlugin;
 import io.github.gr3gdev.fenrir.annotation.Listener;
 
 @Route(plugin = FileLoaderPlugin.class)

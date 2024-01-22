@@ -1,7 +1,7 @@
 package io.github.gr3gdev.fenrir.jpa;
 
+import io.github.gr3gdev.fenrir.jpa.plugin.JpaConfiguration;
 import io.github.gr3gdev.fenrir.reflect.ClassUtils;
-import io.github.gr3gdev.fenrir.reflect.PackageUtils;
 import jakarta.persistence.*;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaDelete;
@@ -34,18 +34,8 @@ public final class JPAManager {
      */
     public static void init(Class<?> mainClass, Properties fenrirProperties) {
         if (entityManagerFactory == null) {
-            final List<Class<?>> entityClasses = PackageUtils.findAnnotatedClasses(mainClass, Entity.class);
-            Optional.ofNullable(fenrirProperties.getProperty("fenrir.jpa.externalClasses"))
-                    .ifPresent(value -> entityClasses.addAll(Arrays.stream(value.split(","))
-                            .map(externalClass -> {
-                                try {
-                                    return Class.forName(externalClass.trim());
-                                } catch (ClassNotFoundException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            })
-                            .toList()));
-            entityManagerFactory = new FenrirEntityManagerFactory(entityClasses, fenrirProperties);
+            final JpaConfiguration jpaConfiguration = mainClass.getAnnotation(JpaConfiguration.class);
+            entityManagerFactory = new FenrirEntityManagerFactory(Arrays.asList(jpaConfiguration.entitiesClass()), fenrirProperties);
             entityManager = entityManagerFactory.getEntityManager();
         }
     }

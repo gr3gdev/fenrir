@@ -7,10 +7,9 @@ import io.github.gr3gdev.fenrir.http.HttpMethod;
 import io.github.gr3gdev.fenrir.http.HttpResponse;
 import io.github.gr3gdev.fenrir.http.HttpRouteListener;
 import io.github.gr3gdev.fenrir.http.HttpStatus;
+import io.github.gr3gdev.fenrir.plugin.FileLoaderPlugin;
+import io.github.gr3gdev.fenrir.plugin.HttpSocketPlugin;
 import io.github.gr3gdev.fenrir.plugin.Plugin;
-import io.github.gr3gdev.fenrir.plugin.impl.FileLoaderPlugin;
-import io.github.gr3gdev.fenrir.plugin.impl.HttpSocketPlugin;
-import io.github.gr3gdev.fenrir.reflect.PackageUtils;
 import io.github.gr3gdev.fenrir.socket.HttpSocketEvent;
 import io.github.gr3gdev.fenrir.socket.HttpSocketReader;
 
@@ -39,7 +38,7 @@ public class HttpMode implements Mode<HttpSocketEvent> {
     public Set<HttpSocketEvent> init(Class<?> mainClass, Map<Class<?>, Plugin> plugins, Properties fenrirProperties) {
         final FileLoaderPlugin fileLoaderPlugin = new FileLoaderPlugin();
         plugins.put(FileLoaderPlugin.class, fileLoaderPlugin);
-        final List<Class<?>> routes = parseRoutes(mainClass, fenrirProperties);
+        final List<Class<?>> routes = parseRoutes(mainClass);
         final Set<HttpSocketEvent> socketEvents = new HashSet<>();
         final HttpResponse favicon = fileLoaderPlugin.process("/favicon.ico", Map.of(
                 RESPONSE_CODE, HttpStatus.OK,
@@ -54,19 +53,8 @@ public class HttpMode implements Mode<HttpSocketEvent> {
         return socketEvents;
     }
 
-    private List<Class<?>> parseRoutes(Class<?> mainClass, Properties fenrirProperties) {
-        final List<Class<?>> classes = PackageUtils.findAnnotatedClasses(mainClass, Route.class);
-        Optional.ofNullable(fenrirProperties.getProperty("fenrir.http.externalClasses"))
-                .ifPresent(value -> classes.addAll(Arrays.stream(value.split(","))
-                        .map(externalClass -> {
-                            try {
-                                return Class.forName(externalClass.trim());
-                            } catch (ClassNotFoundException e) {
-                                throw new RuntimeException(e);
-                            }
-                        })
-                        .toList()));
-        return classes;
+    private List<Class<?>> parseRoutes(Class<?> mainClass) {
+        return Arrays.asList(mainClass.getAnnotation(HttpConfiguration.class).routes());
     }
 
     private Set<HttpSocketEvent> findSocketEvents(final Map<Class<?>, Plugin> plugins, Class<?> routeClass) {
