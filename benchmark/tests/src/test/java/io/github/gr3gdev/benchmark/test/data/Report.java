@@ -1,45 +1,45 @@
 package io.github.gr3gdev.benchmark.test.data;
 
 import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class Report {
 
-    final Map<Data.Request, HttpResponse<String>> responses = new HashMap<>();
+    private final Map<Data.Request, Response> responses = new LinkedHashMap<>();
     private String dockerImageSize;
-    private Float startedTime;
+    private String startedTime;
 
-    public void addResponse(Data.Request request, HttpResponse<String> httpResponse) {
-        responses.put(request, httpResponse);
+    public void addResponse(Data.Request request, HttpResponse<String> httpResponse, Duration duration) {
+        responses.put(request, new Response(
+                Optional.ofNullable(httpResponse).map(r -> String.valueOf(r.statusCode())).orElse("ERROR"),
+                Optional.ofNullable(httpResponse).map(HttpResponse::body).orElse("ERROR"),
+                Optional.ofNullable(duration).map(d -> String.valueOf(d.toMillis())).orElse("ERROR")));
     }
 
     public void setDockerImageSize(String dockerImageSize) {
         this.dockerImageSize = dockerImageSize;
     }
 
-    public void setStartedTime(Float startedTime) {
+    public void setStartedTime(String startedTime) {
         this.startedTime = startedTime;
     }
 
-    @Override
-    public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("- Docker image size : ").append(dockerImageSize).append("\n");
-        builder.append("- Started time : ").append(startedTime).append(" seconds\n");
-        responses.forEach((req, res) -> {
-            builder.append("- Request ")
-                    .append(req.method)
-                    .append(" ")
-                    .append(req.path)
-                    .append("\n")
-                    .append(" (")
-                    .append(res.statusCode())
-                    .append(") ")
-                    .append(res.body())
-                    .append("\n");
-        });
-        return builder.toString();
+    public Map<Data.Request, Response> getResponses() {
+        return responses;
     }
 
+    public String getDockerImageSize() {
+        return dockerImageSize;
+    }
+
+    public String getStartedTime() {
+        return startedTime;
+    }
+
+    public record Response(String code, String body, String time) {
+    }
 }

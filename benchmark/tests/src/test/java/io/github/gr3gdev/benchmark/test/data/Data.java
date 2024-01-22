@@ -39,15 +39,10 @@ public class Data {
             new Request("/person/1", "DELETE", null)
     );
 
-    public static class Request {
-        public final String path;
-        public final String method;
-        public final String data;
-
-        public Request(String path, String method, String data) {
-            this.path = path;
-            this.method = method;
-            this.data = data;
+    public record Request(String path, String method, String data) {
+        @Override
+        public String toString() {
+            return method + " " + path;
         }
     }
 }

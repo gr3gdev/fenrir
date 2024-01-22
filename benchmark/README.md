@@ -9,7 +9,7 @@ Dependencies :
 
 - JPA
 - Lombok
-- H2 database (memory)
+- postgreSQL database
 
 Database model :
 

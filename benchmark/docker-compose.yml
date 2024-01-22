@@ -16,15 +16,21 @@ services:
     network_mode: "host"
     ports:
       - 9001:9001
+    depends_on:
+      - database
 
   benchmark-quarkus:
     image: gr3gdev/benchmark-quarkus
     network_mode: "host"
     ports:
       - 9002:9002
+    depends_on:
+      - database
 
   benchmark-fenrir:
     image: gr3gdev/benchmark-fenrir
     network_mode: "host"
     ports:
       - 9003:9003
+    depends_on:
+      - database
