@@ -1,6 +1,6 @@
 package io.github.gr3gdev.benchmark.fenrir.dao;
 
-import io.github.gr3gdev.benchmark.fenrir.bean.Person;
+import io.github.gr3gdev.benchmark.domain.Person;
 import io.github.gr3gdev.fenrir.jpa.JpaRepository;
 
 public class PersonRepository implements JpaRepository<Person, Long> {

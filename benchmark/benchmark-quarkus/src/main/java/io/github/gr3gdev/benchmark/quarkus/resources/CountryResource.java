@@ -1,6 +1,6 @@
 package io.github.gr3gdev.benchmark.quarkus.resources;
 
-import io.github.gr3gdev.benchmark.quarkus.bean.Country;
+import io.github.gr3gdev.benchmark.domain.Country;
 import io.github.gr3gdev.benchmark.quarkus.dao.CountryRepository;
 import jakarta.ws.rs.Path;
 

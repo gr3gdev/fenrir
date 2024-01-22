@@ -1,5 +1,7 @@
 package io.github.gr3gdev.fenrir.plugin;
 
+import java.util.Properties;
+
 /**
  * Fenrir plugin interface.
  * <p>
@@ -10,7 +12,13 @@ package io.github.gr3gdev.fenrir.plugin;
  * </ul>
  */
 public interface Plugin {
-    default void init(Class<?> mainClass) {
+    /**
+     * Init the plugin.
+     *
+     * @param mainClass        the main class
+     * @param fenrirProperties fenrir properties
+     */
+    default void init(Class<?> mainClass, Properties fenrirProperties) {
         // None
     }
 }

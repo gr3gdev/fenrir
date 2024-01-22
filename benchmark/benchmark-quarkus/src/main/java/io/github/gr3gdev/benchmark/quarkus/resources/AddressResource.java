@@ -1,6 +1,6 @@
 package io.github.gr3gdev.benchmark.quarkus.resources;
 
-import io.github.gr3gdev.benchmark.quarkus.bean.Address;
+import io.github.gr3gdev.benchmark.domain.Address;
 import io.github.gr3gdev.benchmark.quarkus.dao.AddressRepository;
 import jakarta.ws.rs.Path;
 

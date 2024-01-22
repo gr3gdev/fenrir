@@ -36,10 +36,10 @@ public class HttpMode implements Mode<HttpSocketEvent> {
      * {@inheritDoc}
      */
     @Override
-    public Set<HttpSocketEvent> init(Class<?> mainClass, Map<Class<?>, Plugin> plugins) {
+    public Set<HttpSocketEvent> init(Class<?> mainClass, Map<Class<?>, Plugin> plugins, Properties fenrirProperties) {
         final FileLoaderPlugin fileLoaderPlugin = new FileLoaderPlugin();
         plugins.put(FileLoaderPlugin.class, fileLoaderPlugin);
-        final List<Class<?>> routes = parseRoutes(mainClass);
+        final List<Class<?>> routes = parseRoutes(mainClass, fenrirProperties);
         final Set<HttpSocketEvent> socketEvents = new HashSet<>();
         final HttpResponse favicon = fileLoaderPlugin.process("/favicon.ico", Map.of(
                 RESPONSE_CODE, HttpStatus.OK,
@@ -54,8 +54,19 @@ public class HttpMode implements Mode<HttpSocketEvent> {
         return socketEvents;
     }
 
-    private List<Class<?>> parseRoutes(Class<?> mainClass) {
-        return PackageUtils.findAnnotatedClasses(mainClass, Route.class);
+    private List<Class<?>> parseRoutes(Class<?> mainClass, Properties fenrirProperties) {
+        final List<Class<?>> classes = PackageUtils.findAnnotatedClasses(mainClass, Route.class);
+        Optional.ofNullable(fenrirProperties.getProperty("fenrir.http.externalClasses"))
+                .ifPresent(value -> classes.addAll(Arrays.stream(value.split(","))
+                        .map(externalClass -> {
+                            try {
+                                return Class.forName(externalClass.trim());
+                            } catch (ClassNotFoundException e) {
+                                throw new RuntimeException(e);
+                            }
+                        })
+                        .toList()));
+        return classes;
     }
 
     private Set<HttpSocketEvent> findSocketEvents(final Map<Class<?>, Plugin> plugins, Class<?> routeClass) {

@@ -1,6 +1,6 @@
 package io.github.gr3gdev.benchmark.spring.controller;
 
-import io.github.gr3gdev.benchmark.spring.bean.Country;
+import io.github.gr3gdev.benchmark.domain.Country;
 import io.github.gr3gdev.benchmark.spring.dao.CountryRepository;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

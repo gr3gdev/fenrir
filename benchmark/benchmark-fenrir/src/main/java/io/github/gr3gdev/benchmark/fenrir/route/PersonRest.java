@@ -1,6 +1,6 @@
 package io.github.gr3gdev.benchmark.fenrir.route;
 
-import io.github.gr3gdev.benchmark.fenrir.bean.Person;
+import io.github.gr3gdev.benchmark.domain.Person;
 import io.github.gr3gdev.benchmark.fenrir.dao.PersonRepository;
 import io.github.gr3gdev.fenrir.annotation.Route;
 import io.github.gr3gdev.fenrir.plugin.impl.JsonPlugin;

@@ -8,7 +8,6 @@ import jakarta.persistence.criteria.CriteriaDelete;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
 
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -30,17 +29,22 @@ public final class JPAManager {
     /**
      * Initialize the entities.
      *
-     * @param mainClass the main class (for reflection)
+     * @param mainClass        the main class (for reflection)
+     * @param fenrirProperties fenrir properties
      */
-    public static void init(Class<?> mainClass) {
+    public static void init(Class<?> mainClass, Properties fenrirProperties) {
         if (entityManagerFactory == null) {
             final List<Class<?>> entityClasses = PackageUtils.findAnnotatedClasses(mainClass, Entity.class);
-            final Properties fenrirProperties = new Properties();
-            try {
-                fenrirProperties.load(JPAManager.class.getResourceAsStream("/fenrir.properties"));
-            } catch (IOException e) {
-                throw new RuntimeException("Configuration file 'fenrir.properties' is not found !", e);
-            }
+            Optional.ofNullable(fenrirProperties.getProperty("fenrir.jpa.externalClasses"))
+                    .ifPresent(value -> entityClasses.addAll(Arrays.stream(value.split(","))
+                            .map(externalClass -> {
+                                try {
+                                    return Class.forName(externalClass.trim());
+                                } catch (ClassNotFoundException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            })
+                            .toList()));
             entityManagerFactory = new FenrirEntityManagerFactory(entityClasses, fenrirProperties);
             entityManager = entityManagerFactory.getEntityManager();
         }

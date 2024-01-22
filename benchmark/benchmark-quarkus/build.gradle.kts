@@ -1,6 +1,7 @@
 plugins {
     java
     id("io.quarkus")
+    id("org.kordamp.gradle.jandex") version "1.0.0"
 }
 
 repositories {
@@ -18,9 +19,10 @@ dependencies {
     implementation("io.quarkus:quarkus-resteasy-reactive-jackson")
     implementation("io.quarkus:quarkus-arc")
     implementation("io.quarkus:quarkus-hibernate-orm")
-    implementation("io.quarkus:quarkus-jdbc-h2")
+    implementation("io.quarkus:quarkus-jdbc-postgresql")
     implementation("io.quarkus:quarkus-spring-data-jpa")
     implementation("io.quarkus:quarkus-container-image-docker")
+    implementation(project(":domain"))
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
 }

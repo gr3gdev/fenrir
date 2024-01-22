@@ -1,6 +1,6 @@
 package io.github.gr3gdev.benchmark.fenrir.dao;
 
-import io.github.gr3gdev.benchmark.fenrir.bean.City;
+import io.github.gr3gdev.benchmark.domain.City;
 import io.github.gr3gdev.fenrir.jpa.JpaRepository;
 
 public class CityRepository implements JpaRepository<City, Long> {

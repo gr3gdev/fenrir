@@ -1,6 +1,6 @@
 package io.github.gr3gdev.benchmark.spring.controller;
 
-import io.github.gr3gdev.benchmark.spring.bean.City;
+import io.github.gr3gdev.benchmark.domain.City;
 import io.github.gr3gdev.benchmark.spring.dao.CityRepository;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

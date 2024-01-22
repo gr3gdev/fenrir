@@ -11,7 +11,8 @@ dependencies {
     implementation(libs.fenrir.api)
     implementation(libs.fenrir.http)
     implementation(libs.fenrir.jpa)
-    runtimeOnly(libs.h2)
+    implementation(project(":domain"))
+    runtimeOnly(libs.postgresql)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
 }

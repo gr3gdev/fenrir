@@ -9,6 +9,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.logging.LogManager;
@@ -45,11 +46,17 @@ public final class FenrirApplication {
             } catch (IOException e) {
                 throw new RuntimeException("Unable to read logging.properties", e);
             }
+            final Properties fenrirProperties = new Properties();
+            try {
+                fenrirProperties.load(mainClass.getResourceAsStream("/fenrir.properties"));
+            } catch (IOException e) {
+                throw new RuntimeException("Configuration file 'fenrir.properties' is not found !", e);
+            }
             final Instant start = Instant.now();
             final FenrirConfiguration configuration = mainClass.getAnnotation(FenrirConfiguration.class);
-            final Map<Class<?>, Plugin> plugins = loadPlugins(configuration, mainClass);
+            final Map<Class<?>, Plugin> plugins = loadPlugins(configuration, mainClass, fenrirProperties);
             final Server server = initServer(configuration);
-            initModes(configuration.modes(), mainClass, plugins, server);
+            initModes(configuration.modes(), mainClass, plugins, server, fenrirProperties);
             server.run(start);
         } else {
             throw new RuntimeException("The main class must have a FenrirConguration annotation");
@@ -59,12 +66,12 @@ public final class FenrirApplication {
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static void initModes(
             final Class<? extends Mode<? extends SocketEvent>>[] modes,
-            final Class<?> mainClass, final Map<Class<?>, Plugin> plugins, final Server server) {
+            final Class<?> mainClass, final Map<Class<?>, Plugin> plugins, final Server server, final Properties fenrirProperties) {
         Arrays.stream(modes).parallel()
                 .forEach(mode -> {
                     try {
                         final Mode instance = mode.getDeclaredConstructor().newInstance();
-                        final Set<? extends SocketEvent> socketEvents = instance.init(mainClass, plugins);
+                        final Set<? extends SocketEvent> socketEvents = instance.init(mainClass, plugins, fenrirProperties);
                         server.addEvents(socketEvents, instance.getSocketReaderClass());
                     } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
                              | InvocationTargetException | NoSuchMethodException | SecurityException e) {
@@ -73,9 +80,9 @@ public final class FenrirApplication {
                 });
     }
 
-    private static Map<Class<?>, Plugin> loadPlugins(final FenrirConfiguration configuration, final Class<?> mainClass) {
+    private static Map<Class<?>, Plugin> loadPlugins(final FenrirConfiguration configuration, final Class<?> mainClass, final Properties fenrirProperties) {
         return Arrays.stream(configuration.plugins())
-                .map(pluginClass -> initPlugin(pluginClass, mainClass))
+                .map(pluginClass -> initPlugin(pluginClass, mainClass, fenrirProperties))
                 .collect(Collectors.toMap(Plugin::getClass, Function.identity()));
     }
 
@@ -85,10 +92,10 @@ public final class FenrirApplication {
         return server;
     }
 
-    private static Plugin initPlugin(final Class<? extends Plugin> pluginClass, final Class<?> mainClass) {
+    private static Plugin initPlugin(final Class<? extends Plugin> pluginClass, final Class<?> mainClass, final Properties fenrirProperties) {
         try {
             final Plugin plugin = pluginClass.getDeclaredConstructor().newInstance();
-            plugin.init(mainClass);
+            plugin.init(mainClass, fenrirProperties);
             return plugin;
         } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
                  | InvocationTargetException | NoSuchMethodException | SecurityException e) {

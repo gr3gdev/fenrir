@@ -1,18 +1,16 @@
-package io.github.gr3gdev.benchmark.quarkus.bean;
+package io.github.gr3gdev.benchmark.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
 import lombok.Data;
 
-@Entity
+@Entity(name = "country")
 @Data
-public class Address {
+public class Country {
     @Id
+    @Column(name = "country_id")
     private Long id;
-    @Column
+    @Column(name = "name")
     private String name;
-    @ManyToOne
-    private City city;
 }

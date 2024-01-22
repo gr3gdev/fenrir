@@ -5,6 +5,7 @@ import io.github.gr3gdev.fenrir.event.SocketEvent;
 import io.github.gr3gdev.fenrir.plugin.Plugin;
 
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 /**
@@ -16,11 +17,12 @@ public interface Mode<S extends SocketEvent> {
     /**
      * Initialisation of the mode called when the server started.
      *
-     * @param mainClass the main class
-     * @param plugins   the list of the plugins
+     * @param mainClass        the main class
+     * @param plugins          the list of the plugins
+     * @param fenrirProperties fenrir properties
      * @return Set of SocketEvent
      */
-    Set<S> init(Class<?> mainClass, Map<Class<?>, Plugin> plugins);
+    Set<S> init(Class<?> mainClass, Map<Class<?>, Plugin> plugins, Properties fenrirProperties);
 
     /**
      * @return the class of the SocketReader implementation.

@@ -1,6 +1,6 @@
 package io.github.gr3gdev.benchmark.fenrir.dao;
 
-import io.github.gr3gdev.benchmark.fenrir.bean.Address;
+import io.github.gr3gdev.benchmark.domain.Address;
 import io.github.gr3gdev.fenrir.jpa.JpaRepository;
 
 public class AddressRepository implements JpaRepository<Address, Long> {

@@ -1,17 +1,30 @@
 version: "3.3"
 
 services:
+  database:
+    image: postgres:12-alpine
+    network_mode: "host"
+    environment:
+      POSTGRES_DB: benchmark
+      POSTGRES_USER: bench_user
+      POSTGRES_PASSWORD: bench_pass
+    volumes:
+      - ./domain/create_database.sql:/docker-entrypoint-initdb.d/init.sql
+
   benchmark-spring:
     image: gr3gdev/benchmark-spring
+    network_mode: "host"
     ports:
       - 9001:9001
 
   benchmark-quarkus:
     image: gr3gdev/benchmark-quarkus
+    network_mode: "host"
     ports:
       - 9002:9002
 
   benchmark-fenrir:
     image: gr3gdev/benchmark-fenrir
+    network_mode: "host"
     ports:
       - 9003:9003

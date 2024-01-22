@@ -1,5 +1,6 @@
 package io.github.gr3gdev.fenrir.reflect;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.nio.file.Files;
@@ -22,7 +23,7 @@ public class PackageUtils {
 
     private static String getPackagePath(Class<?> mainClass) {
         final String packageName = mainClass.getPackageName();
-        return packageName.replaceAll("[.]", "/");
+        return packageName.replaceAll("[.]", File.separator);
     }
 
     private static List<Class<?>> findClasses(Class<?> mainClass, Function<Class<?>, Boolean> filter, String errorMessage) {
@@ -61,7 +62,7 @@ public class PackageUtils {
         try {
             final String classPath = path.toString().substring(path.toString().indexOf(packagePath),
                     path.toString().lastIndexOf('.'));
-            return Class.forName(classPath.replace("/", "."));
+            return Class.forName(classPath.replace(File.separator, "."));
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
