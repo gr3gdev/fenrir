@@ -14,23 +14,23 @@ public class AbstractRest<E, K> {
 
     protected final JpaRepository<E, K> repository;
 
-    @Listener(path = "/")
+    @Listener(path = "/", contentType = "application/json")
     public List<E> findAll() {
         return repository.findAll();
     }
 
-    @Listener(path = "/", method = HttpMethod.POST, responseCode = HttpStatus.CREATED)
-    public E create(@Body E entity) {
+    @Listener(path = "/", method = HttpMethod.POST, responseCode = HttpStatus.CREATED, contentType = "application/json")
+    public E create(@Body(contentType = "application/json") E entity) {
         return repository.save(entity);
     }
 
-    @Listener(path = "/", method = HttpMethod.PUT)
-    public E update(@Body E entity) {
+    @Listener(path = "/", method = HttpMethod.PUT, contentType = "application/json")
+    public E update(@Body(contentType = "application/json") E entity) {
         return repository.save(entity);
     }
 
-    @Listener(path = "/", method = HttpMethod.DELETE)
-    public void delete(@Body E entity) {
+    @Listener(path = "/", method = HttpMethod.DELETE, contentType = "application/json", responseCode = HttpStatus.NO_CONTENT)
+    public void delete(@Body(contentType = "application/json") E entity) {
         repository.delete(entity);
     }
 }

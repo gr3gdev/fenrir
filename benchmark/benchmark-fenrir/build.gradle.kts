@@ -11,6 +11,7 @@ dependencies {
     implementation(libs.fenrir.api)
     implementation(libs.fenrir.http)
     implementation(libs.fenrir.jpa)
+    implementation(libs.slf4j.jdk14)
     implementation(project(":domain"))
     runtimeOnly(libs.postgresql)
     compileOnly(libs.lombok)

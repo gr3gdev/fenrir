@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * HTTP Mode (for example : application server, REST API).
@@ -51,10 +52,11 @@ public class HttpMode implements Mode<HttpSocketEvent> {
                 RESPONSE_CODE, HttpStatus.OK,
                 CONTENT_TYPE, "image/vnd.microsoft.icon"
         ));
+        final Map<Class<?>, Validator> validatorCache = new HashMap<>();
         socketEvents.add(new HttpSocketEvent(
                 "/favicon.ico", HttpMethod.GET, new HttpRouteListener((req) -> favicon)));
         socketEvents.addAll(routes.parallelStream()
-                .map(routeClass -> findSocketEvents(plugins, routeClass))
+                .map(routeClass -> findSocketEvents(plugins, routeClass, validatorCache))
                 .flatMap(Collection::stream)
                 .collect(Collectors.toSet()));
         return socketEvents;
@@ -64,13 +66,14 @@ public class HttpMode implements Mode<HttpSocketEvent> {
         return Arrays.asList(mainClass.getAnnotation(HttpConfiguration.class).routes());
     }
 
-    private Set<HttpSocketEvent> findSocketEvents(final Map<Class<?>, Plugin> plugins, Class<?> routeClass) {
-        LOGGER.trace("Find socket events");
+    private Set<HttpSocketEvent> findSocketEvents(Map<Class<?>, Plugin> plugins, Class<?> routeClass, Map<Class<?>, Validator> validatorCache) {
+        LOGGER.trace("Find socket events for {}", routeClass.getCanonicalName());
         final Route route = routeClass.getAnnotation(Route.class);
+        initValidators(route.validators(), validatorCache);
         final HttpSocketPlugin<?> plugin = (HttpSocketPlugin<?>) plugins.get(route.plugin());
         return Arrays.stream(routeClass.getMethods())
                 .filter(m -> m.isAnnotationPresent(Listener.class))
-                .map(m -> mapMethodToSocketEvent(route, routeClass, m, plugin))
+                .map(m -> mapMethodToSocketEvent(route, routeClass, validatorCache, m, plugin))
                 .collect(Collectors.toSet());
     }
 
@@ -79,22 +82,26 @@ public class HttpMode implements Mode<HttpSocketEvent> {
         return completePath.replace("//", "/");
     }
 
-    private List<Validator> initValidators(Class<? extends Validator>[] routeValidators, Class<? extends Validator>[] requestValidators) {
-        LOGGER.trace("Init validators");
-        final List<Validator> validators = new ArrayList<>(requestValidators.length + requestValidators.length);
-        validators.addAll(Arrays.stream(routeValidators)
-                .map(v -> (Validator) ClassUtils.newInstance(v))
-                .toList());
-        validators.addAll(Arrays.stream(requestValidators)
-                .map(v -> (Validator) ClassUtils.newInstance(v))
-                .toList());
-        return validators;
+    private void initValidators(Class<? extends Validator>[] validators, Map<Class<?>, Validator> validatorCache) {
+        Arrays.stream(validators)
+                .parallel()
+                .forEach(v -> validatorCache.computeIfAbsent(v, k -> {
+                    LOGGER.trace("Init validator {}", v.getCanonicalName());
+                    return (Validator) ClassUtils.newInstance(v);
+                }));
     }
 
-    private HttpSocketEvent mapMethodToSocketEvent(Route route, Class<?> routeClass, Method m,
-                                                   HttpSocketPlugin<?> plugin) {
+    private HttpSocketEvent mapMethodToSocketEvent(Route route, Class<?> routeClass, Map<Class<?>, Validator> validatorCache,
+                                                   Method m, HttpSocketPlugin<?> plugin) {
         final Listener listenerAnnotation = m.getAnnotation(Listener.class);
-        final List<Validator> validators = initValidators(route.validators(), listenerAnnotation.validators());
+        initValidators(listenerAnnotation.validators(), validatorCache);
+        final List<Validator> validators = validatorCache.entrySet().stream()
+                .filter(entry -> Stream.concat(
+                                Arrays.stream(route.validators()),
+                                Arrays.stream(listenerAnnotation.validators())).toList()
+                        .contains(entry.getKey()))
+                .map(Map.Entry::getValue)
+                .toList();
         final Map<String, Object> properties = Map.of(
                 CONTENT_TYPE, listenerAnnotation.contentType(),
                 RESPONSE_CODE, listenerAnnotation.responseCode()

@@ -16,6 +16,9 @@ import io.github.gr3gdev.fenrir.plugin.JsonPlugin;
 import io.github.gr3gdev.fenrir.runtime.HttpConfiguration;
 import io.github.gr3gdev.fenrir.runtime.HttpMode;
 
+import java.io.IOException;
+import java.util.logging.LogManager;
+
 @FenrirConfiguration(
         port = 9003,
         plugins = {JsonPlugin.class, JpaPlugin.class},
@@ -25,6 +28,11 @@ import io.github.gr3gdev.fenrir.runtime.HttpMode;
 @JpaConfiguration(entitiesClass = {Address.class, City.class, Country.class, Person.class})
 public class FenrirApp {
     public static void main(String[] args) {
+        try {
+            LogManager.getLogManager().readConfiguration(FenrirApp.class.getResourceAsStream("/logging.properties"));
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to read logging.properties", e);
+        }
         FenrirApplication.run(FenrirApp.class);
     }
 }

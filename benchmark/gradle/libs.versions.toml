@@ -5,6 +5,7 @@ lombok = "1.18.30"
 postgresql = "42.7.1"
 fenrir = "0.1.0"
 jackson = "2.16.1"
+slf4j = "2.0.11"
 
 [libraries]
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-jupiter" }
@@ -16,3 +17,4 @@ fenrir-http = { module = "io.github.gr3gdev:fenrir-http", version.ref = "fenrir"
 fenrir-rest = { module = "io.github.gr3gdev:fenrir-rest", version.ref = "fenrir" }
 fenrir-jpa = { module = "io.github.gr3gdev:fenrir-jpa", version.ref = "fenrir" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
+slf4j-jdk14 = { module = "org.slf4j:slf4j-jdk14", version.ref = "slf4j" }
