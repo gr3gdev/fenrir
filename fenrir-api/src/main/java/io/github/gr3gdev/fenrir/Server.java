@@ -5,6 +5,8 @@ import io.github.gr3gdev.fenrir.event.StartupEvent;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Delegate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -24,7 +26,7 @@ import java.util.function.Consumer;
 @NoArgsConstructor
 final class Server {
 
-    private static final Logger LOGGER = new Logger("Fenrir.Server");
+    private static final Logger LOGGER = LoggerFactory.getLogger(Server.class);
 
     private final AtomicBoolean active = new AtomicBoolean(false);
     private ServerSocket serverSocket;
@@ -58,7 +60,7 @@ final class Server {
             final StartupEvent startupEvent = new StartupEvent();
             startupEvents.forEach(e -> e.accept(startupEvent));
             final String timeInMs = String.valueOf(Duration.between(start, Instant.now()).toMillis() / 1000f);
-            LOGGER.info("Server ({0}) started on port {1,number,####} in {2} seconds",
+            LOGGER.info("Server ({}) started on port {} in {} seconds",
                     properties.getProperty("version"), port, timeInMs);
 
             while (active.get()) {

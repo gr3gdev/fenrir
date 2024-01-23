@@ -1,6 +1,5 @@
 package io.github.gr3gdev.fenrir.http;
 
-import io.github.gr3gdev.fenrir.Logger;
 import io.github.gr3gdev.fenrir.Response;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -15,8 +14,6 @@ import java.util.Set;
  */
 @Getter
 public class HttpResponse implements Response {
-
-    private static final Logger LOGGER = new Logger("Fenrir.HttpResponse");
 
     private byte[] content;
     @Setter

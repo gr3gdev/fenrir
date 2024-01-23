@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.logging.LogManager;
 import java.util.stream.Collectors;
 
 /**
@@ -41,11 +40,6 @@ public final class FenrirApplication {
      */
     public static void run(final Class<?> mainClass) {
         if (mainClass.isAnnotationPresent(FenrirConfiguration.class)) {
-            try {
-                LogManager.getLogManager().readConfiguration(FenrirApplication.class.getResourceAsStream("/logging.properties"));
-            } catch (IOException e) {
-                throw new RuntimeException("Unable to read logging.properties", e);
-            }
             final Properties fenrirProperties = new Properties();
             try {
                 fenrirProperties.load(mainClass.getResourceAsStream("/fenrir.properties"));

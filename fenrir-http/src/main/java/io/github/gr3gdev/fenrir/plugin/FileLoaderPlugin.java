@@ -1,7 +1,8 @@
 package io.github.gr3gdev.fenrir.plugin;
 
-import io.github.gr3gdev.fenrir.Logger;
 import io.github.gr3gdev.fenrir.http.HttpStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,7 +32,7 @@ public class FileLoaderPlugin extends HttpSocketPlugin<String> {
 
     static class File {
 
-        private static final Logger LOGGER = new Logger("Fenrir.FileLoaderPlugin.File");
+        private static final Logger LOGGER = LoggerFactory.getLogger(File.class);
 
         private final String path;
 
@@ -47,7 +48,7 @@ public class FileLoaderPlugin extends HttpSocketPlugin<String> {
             try (final InputStream resourceAsStream = Thread.currentThread().getContextClassLoader()
                     .getResourceAsStream(path)) {
                 if (resourceAsStream == null) {
-                    LOGGER.warn("Content not found : {0}", path);
+                    LOGGER.warn("Content not found : {}", path);
                     return null;
                 } else {
                     return resourceAsStream.readAllBytes();

@@ -10,6 +10,7 @@ dependencies {
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
 
+    implementation(libs.slf4j.jdk14)
     implementation(project(":fenrir-api"))
     implementation(project(":fenrir-http"))
     implementation(project(":fenrir-jpa"))
