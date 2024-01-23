@@ -39,7 +39,7 @@ public interface HttpRequest extends Request {
      *
      * @return Optional of String
      */
-    Optional<String> headers(String key);
+    Optional<String> header(String key);
 
     /**
      * Put HTTP Request Headers.

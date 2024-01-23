@@ -28,7 +28,7 @@ class ReaderUtil {
 
     static void loadParameters(HttpRequest request, String pathParameters, BufferedReader pReader)
             throws IOException {
-        final Optional<String> contentType = request.headers("Content-Type");
+        final Optional<String> contentType = request.header("Content-Type");
         final StringBuilder payload = new StringBuilder();
         while (pReader.ready()) {
             payload.append((char) pReader.read());

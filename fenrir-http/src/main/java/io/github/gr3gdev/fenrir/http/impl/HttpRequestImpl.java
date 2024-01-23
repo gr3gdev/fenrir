@@ -86,7 +86,7 @@ public class HttpRequestImpl implements HttpRequest {
      * {@inheritDoc}
      */
     @Override
-    public Optional<String> headers(String key) {
+    public Optional<String> header(String key) {
         return Optional.ofNullable(this.headers.get(key.toLowerCase()));
     }
 

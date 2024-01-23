@@ -19,4 +19,10 @@ import java.lang.annotation.Target;
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Body {
+    /**
+     * The content type of the body ('application/x-www-form-urlencoded' by default).
+     *
+     * @return String
+     */
+    String contentType() default "application/x-www-form-urlencoded";
 }

@@ -17,7 +17,7 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
 
-@TestMethodOrder(MethodOrderer.MethodName.class)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public abstract class AbstractTest {
 
     public abstract Framework getFramework();
@@ -41,7 +41,9 @@ public abstract class AbstractTest {
             builder = builder.method(request.method(), HttpRequest.BodyPublishers.ofString(request.data()));
         }
         sleep(200);
-        final HttpRequest httpRequest = builder.build();
+        final HttpRequest httpRequest = builder
+                .header("Content-Type", "application/json")
+                .build();
         try {
             final Instant start = Instant.now();
             final HttpResponse<String> httpResponse = client.send(httpRequest, HttpResponse.BodyHandlers.ofString());

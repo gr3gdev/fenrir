@@ -3,6 +3,7 @@ package io.github.gr3gdev.fenrir.annotation;
 import io.github.gr3gdev.fenrir.Request;
 import io.github.gr3gdev.fenrir.Response;
 import io.github.gr3gdev.fenrir.plugin.SocketPlugin;
+import io.github.gr3gdev.fenrir.validator.Validator;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -36,4 +37,11 @@ public @interface Route {
      * @return Class
      */
     Class<? extends SocketPlugin<?, ? extends Request, ? extends Response>> plugin();
+
+    /**
+     * The validators to use for requests.
+     *
+     * @return Array of Class
+     */
+    Class<? extends Validator>[] validators() default {};
 }

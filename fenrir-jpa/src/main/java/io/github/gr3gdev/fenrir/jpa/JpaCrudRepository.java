@@ -41,9 +41,11 @@ public interface JpaCrudRepository<E, K> {
      * @return Optional of entity
      */
     default Optional<E> findById(K id) {
-        return Optional.of(entityManager()
+        return entityManager()
                 .createQuery(selectFromClass(getDomainClass(), getPrimaryKeyFilter(getDomainClass(), id)))
-                .getSingleResult());
+                .getResultList()
+                .stream()
+                .findFirst();
     }
 
     /**

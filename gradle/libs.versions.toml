@@ -12,4 +12,6 @@ lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
 thymeleaf = { module = "org.thymeleaf:thymeleaf", version.ref = "thymeleaf" }
 hibernate = { module = "org.hibernate.orm:hibernate-core", version.ref = "hibernate" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
+jackson-jdk8 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jdk8", version.ref = "jackson" }
+jackson-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "jackson" }
 hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }

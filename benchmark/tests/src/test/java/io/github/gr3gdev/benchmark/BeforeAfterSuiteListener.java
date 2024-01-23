@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.http.HttpClient;
+import java.nio.file.Files;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -40,8 +41,8 @@ public class BeforeAfterSuiteListener implements TestExecutionListener {
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-            if (Duration.between(started, Instant.now()).toSeconds() > 60) {
-                Assertions.fail("Starting timeout for " + service + "\n" + logs);
+            if (Duration.between(started, Instant.now()).toSeconds() > 15) {
+                throw new RuntimeException("Starting timeout for " + service + "\n" + logs);
             }
             logs = CommandUtils.execute(List.of("docker-compose", "logs", service));
             matcher = pattern.matcher(logs);
@@ -89,10 +90,13 @@ public class BeforeAfterSuiteListener implements TestExecutionListener {
 
     @Override
     public void testPlanExecutionFinished(TestPlan testPlan) {
-        // After all tests
-        TestSuite.client.close();
-        CommandUtils.execute(List.of("docker-compose", "rm", "-fs"));
-        reporting(TestSuite.reports);
+        try {
+            // After all tests
+            TestSuite.client.close();
+            reporting(TestSuite.reports);
+        } finally {
+            CommandUtils.execute(List.of("docker-compose", "rm", "-fs"));
+        }
     }
 
     private String getDockerImageSize(Report report) {
@@ -116,7 +120,15 @@ public class BeforeAfterSuiteListener implements TestExecutionListener {
     }
 
     private void reporting(Map<Framework, Report> reports) {
-        final File report = new File("build", UUID.randomUUID() + ".csv");
+        final File reportDir = new File("build", "benchmark");
+        if (!reportDir.exists()) {
+            try {
+                Files.createDirectory(reportDir.toPath());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        final File report = new File(reportDir, "report_" + Instant.now().toEpochMilli() + ".csv");
         try (FileWriter writer = new FileWriter(report)) {
             final Report springReport = TestSuite.reports.get(Framework.SPRING);
             final Report quarkusReport = TestSuite.reports.get(Framework.QUARKUS);
@@ -151,6 +163,10 @@ public class BeforeAfterSuiteListener implements TestExecutionListener {
                 }
             });
             System.out.println("Report : " + report.getAbsolutePath());
+            for (final Framework framework : Framework.values()) {
+                final String logs = CommandUtils.execute(List.of("docker-compose", "logs", framework.getService()));
+                Files.writeString(new File(reportDir, framework.getService() + ".log").toPath(), logs);
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

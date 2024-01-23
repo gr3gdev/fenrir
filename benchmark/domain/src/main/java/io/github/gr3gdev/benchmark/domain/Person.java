@@ -15,7 +15,6 @@ public class Person {
     private String firstName;
     @Column(name = "lastname")
     private String lastName;
-    @OneToMany
-    @JoinColumn(name = "address_id")
+    @OneToMany(mappedBy = "id")
     private Set<Address> addresses;
 }

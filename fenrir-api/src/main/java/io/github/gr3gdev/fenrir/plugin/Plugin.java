@@ -1,5 +1,7 @@
 package io.github.gr3gdev.fenrir.plugin;
 
+import io.github.gr3gdev.fenrir.validator.Validator;
+
 import java.util.Properties;
 
 /**
@@ -21,4 +23,11 @@ public interface Plugin {
     default void init(Class<?> mainClass, Properties fenrirProperties) {
         // None
     }
+
+    /**
+     * Add a validator to the plugin.
+     *
+     * @param validator a validator
+     */
+    void addValidator(Validator validator);
 }

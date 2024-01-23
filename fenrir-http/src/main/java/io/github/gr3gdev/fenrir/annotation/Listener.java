@@ -2,6 +2,7 @@ package io.github.gr3gdev.fenrir.annotation;
 
 import io.github.gr3gdev.fenrir.http.HttpMethod;
 import io.github.gr3gdev.fenrir.http.HttpStatus;
+import io.github.gr3gdev.fenrir.validator.Validator;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -41,4 +42,11 @@ public @interface Listener {
      * @return String
      */
     String contentType() default "text/html";
+
+    /**
+     * The validators to use for the request.
+     *
+     * @return Array of Class
+     */
+    Class<? extends Validator>[] validators() default {};
 }

@@ -33,10 +33,10 @@ public class Data {
     );
 
     public static final List<Request> DELETE_BY_ID = List.of(
-            new Request("/country/1", "DELETE", null),
-            new Request("/city/1", "DELETE", null),
+            new Request("/person/1", "DELETE", null),
             new Request("/address/1", "DELETE", null),
-            new Request("/person/1", "DELETE", null)
+            new Request("/city/1", "DELETE", null),
+            new Request("/country/1", "DELETE", null)
     );
 
     public record Request(String path, String method, String data) {

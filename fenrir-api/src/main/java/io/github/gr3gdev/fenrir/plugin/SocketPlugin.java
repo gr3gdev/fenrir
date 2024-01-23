@@ -5,12 +5,13 @@ import io.github.gr3gdev.fenrir.Response;
 import io.github.gr3gdev.fenrir.annotation.Body;
 import io.github.gr3gdev.fenrir.annotation.Param;
 import io.github.gr3gdev.fenrir.reflect.ClassUtils;
+import io.github.gr3gdev.fenrir.validator.Validator;
+import io.github.gr3gdev.fenrir.validator.ValidatorException;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.util.Arrays;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Abstract class for {@link Plugin} resolution of responses.
@@ -21,6 +22,19 @@ import java.util.Map;
  */
 public abstract class SocketPlugin<M, RQ extends Request, RS extends Response> implements Plugin {
 
+    private final Set<Validator> validators = new HashSet<>();
+
+    @Override
+    public final void addValidator(Validator validator) {
+        validators.add(validator);
+    }
+
+    protected List<Validator> findValidatorsFor(Object object) {
+        return this.validators.stream()
+                .filter(v -> v.supports(object))
+                .toList();
+    }
+
     /**
      * Process a request and return a response.
      *
@@ -28,31 +42,60 @@ public abstract class SocketPlugin<M, RQ extends Request, RS extends Response> i
      * @param method     the method called
      * @param request    the request
      * @param properties properties for Content-Type, Http Code for response, ...
+     * @param validators the validators execute before processing the request
      * @return Response
      */
     @SuppressWarnings("unchecked")
-    public final RS process(Class<?> routeClass, Method method, RQ request, Map<String, Object> properties) {
+    public final RS process(Class<?> routeClass, Method method, RQ request, Map<String, Object> properties, List<Validator> validators) {
         final Map<String, Class<?>> genericClasses = ClassUtils.findGenericClasses(routeClass);
         final Object routeInstance = ClassUtils.newInstance(routeClass);
         final Map<String, Class<?>> parameterClasses = ClassUtils.findGenericClasses(method, genericClasses);
-        final Object[] parameterValues = Arrays.stream(method.getParameters())
-                .map(p -> extractParameter(p, request, parameterClasses.get(p.getName())))
-                .toArray(Object[]::new);
+        final List<Object> parameterValues = new LinkedList<>();
         try {
-            final Object methodReturn = method.invoke(routeInstance, parameterValues);
+            for (final Parameter parameter : method.getParameters()) {
+                // Validate parameters (by plugin)
+                parameterValues.add(extractParameter(parameter, request, properties, parameterClasses.get(parameter.getName())));
+            }
+            final Object methodReturn;
+            if (parameterValues.isEmpty()) {
+                methodReturn = method.invoke(routeInstance);
+            } else {
+                final Object[] parameterValuesArray = parameterValues.toArray();
+                final List<Validator> validatorsToExecute = validators.stream().filter(v -> v.supports(parameterValuesArray)).toList();
+                for (final Validator validator : validatorsToExecute) {
+                    // Validate parameters (by request)
+                    validator.validate(request, properties, parameterValuesArray);
+                }
+                methodReturn = method.invoke(routeInstance, parameterValuesArray);
+            }
             return process((M) methodReturn, properties);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException(e);
+        } catch (ValidatorException e) {
+            return (RS) e.getResponse();
+        } catch (Exception e) {
+            return processInternalError(properties, e);
         }
     }
 
-    Object extractParameter(Parameter parameter, RQ request, Class<?> parameterClass) {
+    /**
+     * Create a response when an internal error is thrown.
+     *
+     * @param properties properties for Content-Type, Http Code for response, ...
+     * @param exception  the exception
+     * @return Response
+     */
+    protected abstract RS processInternalError(Map<String, Object> properties, Exception exception);
+
+    Object extractParameter(Parameter parameter, RQ request, Map<String, Object> properties, Class<?> parameterClass) throws ValidatorException {
         if (parameter.isAnnotationPresent(Param.class)) {
             final Param param = parameter.getAnnotation(Param.class);
             return request.param(param.value())
                     .map(value -> mapToParameterType(value, parameterClass))
                     .orElse(null);
         } else if (parameter.isAnnotationPresent(Body.class)) {
+            final Body body = parameter.getAnnotation(Body.class);
+            for (final Validator validator : findValidatorsFor(body)) {
+                validator.validate(request, properties, body);
+            }
             return extractBody(parameterClass, request);
         } else {
             return null;

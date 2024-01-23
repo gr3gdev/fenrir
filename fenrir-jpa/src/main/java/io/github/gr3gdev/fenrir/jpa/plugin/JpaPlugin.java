@@ -2,6 +2,7 @@ package io.github.gr3gdev.fenrir.jpa.plugin;
 
 import io.github.gr3gdev.fenrir.jpa.JPAManager;
 import io.github.gr3gdev.fenrir.plugin.Plugin;
+import io.github.gr3gdev.fenrir.validator.Validator;
 
 import java.util.Properties;
 
@@ -12,5 +13,10 @@ public class JpaPlugin implements Plugin {
     @Override
     public void init(Class<?> mainClass, Properties fenrirProperties) {
         JPAManager.init(mainClass, fenrirProperties);
+    }
+
+    @Override
+    public void addValidator(Validator validator) {
+        // None
     }
 }

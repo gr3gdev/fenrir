@@ -9,5 +9,4 @@ create table country (country_id bigint not null, name varchar(255), primary key
 create table person (person_id bigint not null, firstname varchar(255), lastname varchar(255), primary key (person_id));
 
 alter table if exists address add constraint fk_address_city foreign key (city_id) references city;
-alter table if exists address add constraint fk_address_person foreign key (address_id) references person;
 alter table if exists city add constraint fk_city_country foreign key (country_id) references country;

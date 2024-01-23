@@ -1,9 +1,9 @@
 package io.github.gr3gdev.fenrir.plugin;
 
+import io.github.gr3gdev.fenrir.Logger;
 import io.github.gr3gdev.fenrir.http.HttpRequest;
 import io.github.gr3gdev.fenrir.http.HttpResponse;
 import io.github.gr3gdev.fenrir.http.HttpStatus;
-import io.github.gr3gdev.fenrir.plugin.SocketPlugin;
 import io.github.gr3gdev.fenrir.runtime.HttpMode;
 import lombok.Getter;
 
@@ -15,6 +15,7 @@ import java.util.Map;
  * @param <T> the method return
  */
 public abstract class HttpSocketPlugin<T> extends SocketPlugin<T, HttpRequest, HttpResponse> {
+    private static final Logger LOGGER = new Logger("Fenrir.HTTP");
 
     /**
      * {@inheritDoc}
@@ -39,6 +40,16 @@ public abstract class HttpSocketPlugin<T> extends SocketPlugin<T, HttpRequest, H
         } catch (HttpSocketException exc) {
             return HttpResponse.of(exc.getReturnStatus()).content(exc.getMessage(), contentType);
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected HttpResponse processInternalError(Map<String, Object> properties, Exception exception) {
+        LOGGER.error("Internal error", exception);
+        return HttpResponse.of(HttpStatus.INTERNAL_SERVER_ERROR)
+                .content("", (String) properties.get(HttpMode.CONTENT_TYPE));
     }
 
     /**
