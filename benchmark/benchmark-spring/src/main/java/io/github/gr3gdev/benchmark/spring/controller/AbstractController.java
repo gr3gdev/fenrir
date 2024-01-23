@@ -1,6 +1,7 @@
 package io.github.gr3gdev.benchmark.spring.controller;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -34,11 +35,13 @@ public abstract class AbstractController<E> {
     }
 
     @DeleteMapping("/")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@RequestBody E bean) {
         repository.delete(bean);
     }
 
     @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteById(@PathVariable Long id) {
         repository.deleteById(id);
     }

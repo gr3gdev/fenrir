@@ -10,9 +10,15 @@ import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestPlan;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URL;
 import java.net.http.HttpClient;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.time.Duration;
 import java.time.Instant;
@@ -24,6 +30,20 @@ import java.util.regex.Pattern;
 @SuppressWarnings("unused")
 public class BeforeAfterSuiteListener implements TestExecutionListener {
 
+    private final File reportDir = new File("build", "benchmark");
+
+    private final String dockerCompose = reportDir.getAbsolutePath() + "/docker-compose";
+
+    public BeforeAfterSuiteListener() {
+        if (!reportDir.exists()) {
+            try {
+                Files.createDirectory(reportDir.toPath());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
     private String measureDockerImagesSize(String service) {
         return CommandUtils.execute(List.of("docker", "image", "ls",
                 "--filter", "reference=gr3gdev/" + service,
@@ -31,7 +51,7 @@ public class BeforeAfterSuiteListener implements TestExecutionListener {
     }
 
     private String measureStartedTime(String service, Pattern pattern) {
-        String logs = CommandUtils.execute(List.of("docker-compose", "logs", service));
+        String logs = CommandUtils.execute(List.of(dockerCompose, "logs", service));
         final Instant started = Instant.now();
         Matcher matcher = pattern.matcher(logs);
         while (!matcher.find()) {
@@ -41,10 +61,12 @@ public class BeforeAfterSuiteListener implements TestExecutionListener {
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-            if (Duration.between(started, Instant.now()).toSeconds() > 15) {
+            if (Duration.between(started, Instant.now()).toSeconds() > 30) {
+                writeLogs();
+                stop();
                 throw new RuntimeException("Starting timeout for " + service + "\n" + logs);
             }
-            logs = CommandUtils.execute(List.of("docker-compose", "logs", service));
+            logs = CommandUtils.execute(List.of(dockerCompose, "logs", service));
             matcher = pattern.matcher(logs);
         }
         try {
@@ -57,6 +79,8 @@ public class BeforeAfterSuiteListener implements TestExecutionListener {
 
     @Override
     public void testPlanExecutionStarted(TestPlan testPlan) {
+        prepareDockerCompose();
+
         TestSuite.client = HttpClient.newBuilder()
                 .connectTimeout(Duration.of(10, ChronoUnit.SECONDS))
                 .build();
@@ -79,13 +103,27 @@ public class BeforeAfterSuiteListener implements TestExecutionListener {
         });
 
         // Start containers
-        CommandUtils.execute(List.of("docker-compose", "up", "-d"));
+        start();
 
         // Measure started time
         TestSuite.reports.forEach((framework, report) -> {
             final String service = framework.getService();
             report.setStartedTime(measureStartedTime(service, framework.getStartedPattern()));
         });
+    }
+
+    private void prepareDockerCompose() {
+        try {
+            final URL downloadURL = URI.create("https://github.com/docker/compose/releases/download/v2.24.2/docker-compose-linux-x86_64").toURL();
+            try (final ReadableByteChannel readableByteChannel = Channels.newChannel(downloadURL.openStream());
+                 final FileOutputStream fileOutputStream = new FileOutputStream(new File(reportDir, "docker-compose"));
+                 final FileChannel fileChannel = fileOutputStream.getChannel()) {
+                fileChannel.transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
+            }
+            CommandUtils.execute(List.of("chmod", "+x", dockerCompose));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -95,8 +133,16 @@ public class BeforeAfterSuiteListener implements TestExecutionListener {
             TestSuite.client.close();
             reporting(TestSuite.reports);
         } finally {
-            CommandUtils.execute(List.of("docker-compose", "rm", "-fs"));
+            stop();
         }
+    }
+
+    private void start() {
+        CommandUtils.execute(List.of(dockerCompose, "up", "-d"));
+    }
+
+    private void stop() {
+        CommandUtils.execute(List.of(dockerCompose, "rm", "-fs"));
     }
 
     private String getDockerImageSize(Report report) {
@@ -120,14 +166,6 @@ public class BeforeAfterSuiteListener implements TestExecutionListener {
     }
 
     private void reporting(Map<Framework, Report> reports) {
-        final File reportDir = new File("build", "benchmark");
-        if (!reportDir.exists()) {
-            try {
-                Files.createDirectory(reportDir.toPath());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
         final File report = new File(reportDir, "report_" + Instant.now().toEpochMilli() + ".csv");
         try (FileWriter writer = new FileWriter(report)) {
             final Report springReport = TestSuite.reports.get(Framework.SPRING);
@@ -150,25 +188,31 @@ public class BeforeAfterSuiteListener implements TestExecutionListener {
                             .append(getResponseTime(springResponse)).append(";")
                             .append(getResponseTime(quarkusResponse)).append(";")
                             .append(getResponseTime(fenrirResponse)).append(";\n");
-                    writer.append(request.toString()).append(" response (code);")
-                            .append(getResponseCode(springResponse)).append(";")
-                            .append(getResponseCode(quarkusResponse)).append(";")
-                            .append(getResponseCode(fenrirResponse)).append(";\n");
-                    writer.append(request.toString()).append(" response (json);")
-                            .append(getResponseBody(springResponse)).append(";")
-                            .append(getResponseBody(quarkusResponse)).append(";")
-                            .append(getResponseBody(fenrirResponse)).append(";\n");
+                    Assertions.assertEquals(getResponseCode(springResponse), getResponseCode(fenrirResponse), "Response code is not the same between : Spring and Fenrir");
+                    Assertions.assertEquals(getResponseCode(quarkusResponse), getResponseCode(fenrirResponse), "Response code is not the same between : Quarkus and Fenrir");
+                    Assertions.assertEquals(getResponseCode(springResponse), getResponseCode(quarkusResponse), "Response code is not the same between : Spring and Quarkus");
+                    Assertions.assertEquals(getResponseBody(springResponse), getResponseBody(fenrirResponse), "Response body is not the same between : Spring and Fenrir");
+                    Assertions.assertEquals(getResponseBody(quarkusResponse), getResponseBody(fenrirResponse), "Response body is not the same between : Quarkus and Fenrir");
+                    Assertions.assertEquals(getResponseBody(springResponse), getResponseBody(quarkusResponse), "Response body is not the same between : Spring and Quarkus");
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
             });
             System.out.println("Report : " + report.getAbsolutePath());
-            for (final Framework framework : Framework.values()) {
-                final String logs = CommandUtils.execute(List.of("docker-compose", "logs", framework.getService()));
-                Files.writeString(new File(reportDir, framework.getService() + ".log").toPath(), logs);
-            }
+            writeLogs();
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private void writeLogs() {
+        for (final Framework framework : Framework.values()) {
+            final String logs = CommandUtils.execute(List.of(dockerCompose, "logs", framework.getService()));
+            try {
+                Files.writeString(new File(reportDir, framework.getService() + ".log").toPath(), logs);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }
