@@ -7,6 +7,8 @@ import io.github.gr3gdev.fenrir.annotation.Param;
 import io.github.gr3gdev.fenrir.reflect.ClassUtils;
 import io.github.gr3gdev.fenrir.validator.Validator;
 import io.github.gr3gdev.fenrir.validator.ValidatorException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -22,10 +24,13 @@ import java.util.*;
  */
 public abstract class SocketPlugin<M, RQ extends Request, RS extends Response> implements Plugin {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(SocketPlugin.class);
+
     private final Set<Validator> validators = new HashSet<>();
 
     @Override
     public final void addValidator(Validator validator) {
+        LOGGER.trace("Add a validator : {}", validator.getClass().getCanonicalName());
         validators.add(validator);
     }
 
@@ -47,6 +52,7 @@ public abstract class SocketPlugin<M, RQ extends Request, RS extends Response> i
      */
     @SuppressWarnings("unchecked")
     public final RS process(Class<?> routeClass, Method method, RQ request, Map<String, Object> properties, List<Validator> validators) {
+        LOGGER.trace("Process a request : {}", routeClass.getCanonicalName());
         final Map<String, Class<?>> genericClasses = ClassUtils.findGenericClasses(routeClass);
         final Object routeInstance = ClassUtils.newInstance(routeClass);
         final Map<String, Class<?>> parameterClasses = ClassUtils.findGenericClasses(method, genericClasses);
@@ -121,6 +127,7 @@ public abstract class SocketPlugin<M, RQ extends Request, RS extends Response> i
      * @return Object (parameter value)
      */
     protected Object extractBody(Class<?> parameterClass, RQ request) {
+        LOGGER.trace("Extract body from request and map to {}", parameterClass.getCanonicalName());
         final Object parameterInstance = ClassUtils.newInstance(parameterClass);
         Arrays.stream(parameterClass.getDeclaredFields())
                 .forEach(field -> {

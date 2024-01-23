@@ -3,6 +3,8 @@ package io.github.gr3gdev.fenrir;
 import io.github.gr3gdev.fenrir.event.SocketEvent;
 import io.github.gr3gdev.fenrir.plugin.Plugin;
 import io.github.gr3gdev.fenrir.runtime.Mode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -28,6 +30,8 @@ import java.util.stream.Collectors;
  * }</pre>
  */
 public final class FenrirApplication {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(FenrirApplication.class);
 
     private FenrirApplication() {
         // None
@@ -61,6 +65,7 @@ public final class FenrirApplication {
     private static void initModes(
             final Class<? extends Mode<? extends SocketEvent>>[] modes,
             final Class<?> mainClass, final Map<Class<?>, Plugin> plugins, final Server server, final Properties fenrirProperties) {
+        LOGGER.trace("Init runtime modes in parallel");
         Arrays.stream(modes).parallel()
                 .forEach(mode -> {
                     try {
@@ -75,7 +80,8 @@ public final class FenrirApplication {
     }
 
     private static Map<Class<?>, Plugin> loadPlugins(final FenrirConfiguration configuration, final Class<?> mainClass, final Properties fenrirProperties) {
-        return Arrays.stream(configuration.plugins())
+        LOGGER.trace("Load plugins in parallel");
+        return Arrays.stream(configuration.plugins()).parallel()
                 .map(pluginClass -> initPlugin(pluginClass, mainClass, fenrirProperties))
                 .collect(Collectors.toMap(Plugin::getClass, Function.identity()));
     }
@@ -88,6 +94,7 @@ public final class FenrirApplication {
 
     private static Plugin initPlugin(final Class<? extends Plugin> pluginClass, final Class<?> mainClass, final Properties fenrirProperties) {
         try {
+            LOGGER.trace("Init plugin {}", pluginClass.getCanonicalName());
             final Plugin plugin = pluginClass.getDeclaredConstructor().newInstance();
             plugin.init(mainClass, fenrirProperties);
             return plugin;

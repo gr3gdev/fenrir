@@ -14,16 +14,19 @@ import io.github.gr3gdev.fenrir.reflect.ClassUtils;
 import io.github.gr3gdev.fenrir.socket.HttpSocketEvent;
 import io.github.gr3gdev.fenrir.socket.HttpSocketReader;
 import io.github.gr3gdev.fenrir.validator.Validator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * HTTP Mode (for example : application server, REST API).
  */
 public class HttpMode implements Mode<HttpSocketEvent> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(HttpMode.class);
 
     /**
      * Property : Content-Type.
@@ -39,6 +42,7 @@ public class HttpMode implements Mode<HttpSocketEvent> {
      */
     @Override
     public Set<HttpSocketEvent> init(Class<?> mainClass, Map<Class<?>, Plugin> plugins, Properties fenrirProperties) {
+        LOGGER.trace("Init HTTP runtime mode");
         final FileLoaderPlugin fileLoaderPlugin = new FileLoaderPlugin();
         plugins.put(FileLoaderPlugin.class, fileLoaderPlugin);
         final List<Class<?>> routes = parseRoutes(mainClass);
@@ -49,7 +53,7 @@ public class HttpMode implements Mode<HttpSocketEvent> {
         ));
         socketEvents.add(new HttpSocketEvent(
                 "/favicon.ico", HttpMethod.GET, new HttpRouteListener((req) -> favicon)));
-        socketEvents.addAll(routes.stream()
+        socketEvents.addAll(routes.parallelStream()
                 .map(routeClass -> findSocketEvents(plugins, routeClass))
                 .flatMap(Collection::stream)
                 .collect(Collectors.toSet()));
@@ -61,6 +65,7 @@ public class HttpMode implements Mode<HttpSocketEvent> {
     }
 
     private Set<HttpSocketEvent> findSocketEvents(final Map<Class<?>, Plugin> plugins, Class<?> routeClass) {
+        LOGGER.trace("Find socket events");
         final Route route = routeClass.getAnnotation(Route.class);
         final HttpSocketPlugin<?> plugin = (HttpSocketPlugin<?>) plugins.get(route.plugin());
         return Arrays.stream(routeClass.getMethods())
@@ -75,6 +80,7 @@ public class HttpMode implements Mode<HttpSocketEvent> {
     }
 
     private List<Validator> initValidators(Class<? extends Validator>[] routeValidators, Class<? extends Validator>[] requestValidators) {
+        LOGGER.trace("Init validators");
         final List<Validator> validators = new ArrayList<>(requestValidators.length + requestValidators.length);
         validators.addAll(Arrays.stream(routeValidators)
                 .map(v -> (Validator) ClassUtils.newInstance(v))
@@ -93,9 +99,11 @@ public class HttpMode implements Mode<HttpSocketEvent> {
                 CONTENT_TYPE, listenerAnnotation.contentType(),
                 RESPONSE_CODE, listenerAnnotation.responseCode()
         );
+        final String path = constructPath(route.path(), listenerAnnotation.path());
+        LOGGER.trace("Create a socket event for {} {}", listenerAnnotation.method(), path);
         final HttpRouteListener routeListener = new HttpRouteListener(
                 (req) -> plugin.process(routeClass, m, req, properties, validators));
-        return new HttpSocketEvent(constructPath(route.path(), listenerAnnotation.path()), listenerAnnotation.method(), routeListener);
+        return new HttpSocketEvent(path, listenerAnnotation.method(), routeListener);
     }
 
     /**

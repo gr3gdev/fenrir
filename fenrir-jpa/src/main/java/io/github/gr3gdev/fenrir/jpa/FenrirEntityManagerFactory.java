@@ -40,7 +40,7 @@ class FenrirEntityManagerFactory {
     }
 
     private List<String> getEntityClassNames() {
-        return this.entityClasses.stream()
+        return this.entityClasses.parallelStream()
                 .map(Class::getName)
                 .collect(Collectors.toList());
     }

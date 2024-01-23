@@ -37,7 +37,7 @@ public abstract class SocketReader implements Runnable {
              final OutputStream outputStream = socket.getOutputStream()) {
             final Request request = newRequest(socket.getRemoteSocketAddress().toString(), inputStream);
             // Search event
-            socketEvents.stream()
+            socketEvents.parallelStream()
                     .filter(e -> e.match(request))
                     .forEach(e -> e.getRouteListener().handleEvent(request, outputStream));
         } catch (IOException e) {
