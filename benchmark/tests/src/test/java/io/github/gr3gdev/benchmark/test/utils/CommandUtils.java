@@ -1,10 +1,13 @@
-package io.github.gr3gdev.benchmark;
+package io.github.gr3gdev.benchmark.test.utils;
+
+import org.junit.jupiter.api.Assertions;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class CommandUtils {
 
@@ -20,8 +23,11 @@ public class CommandUtils {
 
     public static String execute(List<String> command) {
         try {
-            final Process process = new ProcessBuilder(command).start();
-            process.waitFor();
+            final Process process = Runtime.getRuntime().exec(command.toArray(String[]::new));
+            process.waitFor(30, TimeUnit.SECONDS);
+            final int exitCode = process.exitValue();
+            final String error = String.join("\n", readOutput(process.getErrorStream()));
+            Assertions.assertEquals(0, exitCode, String.join(" ", command) + " : " + error);
             return String.join("\n", readOutput(process.getInputStream()));
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);

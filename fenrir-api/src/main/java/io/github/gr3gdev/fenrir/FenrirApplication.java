@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -47,6 +49,7 @@ public final class FenrirApplication {
             final Properties fenrirProperties = new Properties();
             try {
                 fenrirProperties.load(mainClass.getResourceAsStream("/fenrir.properties"));
+                replacePlaceHolders(fenrirProperties);
             } catch (IOException e) {
                 throw new RuntimeException("Configuration file 'fenrir.properties' is not found !", e);
             }
@@ -59,6 +62,28 @@ public final class FenrirApplication {
         } else {
             throw new RuntimeException("The main class must have a FenrirConguration annotation");
         }
+    }
+
+    private static void replacePlaceHolders(Properties fenrirProperties) {
+        final Pattern placeholderPattern = Pattern.compile("\\$\\{.*}");
+        fenrirProperties.keySet().forEach(key -> {
+            final Object value = fenrirProperties.get(key);
+            if (value instanceof String property) {
+                final Matcher matcher = placeholderPattern.matcher(property);
+                if (matcher.find()) {
+                    final String placeholder = property.substring(matcher.start(), matcher.end());
+                    final String[] values = placeholder.split(":");
+                    final String defaultValue;
+                    if (values.length > 1) {
+                        defaultValue = values[1];
+                    } else {
+                        defaultValue = "";
+                    }
+                    // Update property
+                    fenrirProperties.put(key, System.getProperty(values[0], defaultValue));
+                }
+            }
+        });
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})

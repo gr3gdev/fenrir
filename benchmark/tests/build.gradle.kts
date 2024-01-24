@@ -10,6 +10,9 @@ dependencies {
     testImplementation(libs.jackson.databind)
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.junit.suite)
+    testImplementation(libs.testcontainers)
+    testImplementation(libs.testcontainers.postgresql)
+    testImplementation(libs.postgresql)
     testImplementation("org.junit.platform:junit-platform-launcher")
 }
 
