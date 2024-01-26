@@ -15,6 +15,7 @@ dependencies {
     annotationProcessor(libs.lombok)
     api(libs.slf4j.api)
     testImplementation(libs.junit.jupiter)
+    testImplementation(libs.system.stubs.jupiter)
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

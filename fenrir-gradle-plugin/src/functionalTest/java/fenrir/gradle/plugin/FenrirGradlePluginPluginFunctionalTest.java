@@ -58,6 +58,7 @@ class FenrirGradlePluginPluginFunctionalTest {
                 dependencies {
                     implementation files('%1$s/fenrir-api/build/libs/fenrir-api-0.1.0.jar')
                     implementation files('%1$s/fenrir-http/build/libs/fenrir-http-0.1.0.jar')
+                    implementation 'org.slf4j:slf4j-jdk14:2.0.11'
                 }
 
                 java {
@@ -99,8 +100,10 @@ class FenrirGradlePluginPluginFunctionalTest {
                 import io.github.gr3gdev.fenrir.FenrirApplication;
                 import io.github.gr3gdev.fenrir.FenrirConfiguration;
                 import io.github.gr3gdev.fenrir.runtime.HttpMode;
+                import io.github.gr3gdev.fenrir.runtime.HttpConfiguration;
 
                 @FenrirConfiguration(modes = { HttpMode.class })
+                @HttpConfiguration(routes = {TestRoute.class})
                 public class Test {
                     public static void main(String[] args) {
                         FenrirApplication.run(Test.class);

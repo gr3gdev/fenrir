@@ -1,45 +1,122 @@
 package io.github.gr3gdev.benchmark;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.gr3gdev.benchmark.test.data.Framework;
 import io.github.gr3gdev.benchmark.test.data.Report;
-import io.github.gr3gdev.benchmark.test.utils.ReportUtils;
+import io.github.gr3gdev.benchmark.test.data.Request;
+import io.github.gr3gdev.benchmark.test.data.chart.Bar;
+import io.github.gr3gdev.benchmark.test.data.chart.BarChart;
+import io.github.gr3gdev.benchmark.test.utils.CommandUtils;
+import org.junit.jupiter.api.Assertions;
 import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestPlan;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.http.HttpClient;
+import java.net.http.HttpResponse;
 import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("unused")
 public class BeforeAfterSuiteListener implements TestExecutionListener {
 
+    private static final File REPORT_DIR = new File("build", "benchmark");
+
+    private int measureDockerImagesSize(Framework framework) {
+        final ObjectMapper mapper = new ObjectMapper();
+        final String json = CommandUtils.execute(List.of("docker", "image", "ls",
+                "--filter", "reference=gr3gdev/" + framework.getService(),
+                "--format", "json"));
+        try {
+            final JsonNode node = mapper.readTree(json);
+            final String size = node.get("Size").asText();
+            return Integer.parseInt(size.substring(0, size.toUpperCase().indexOf("MB")));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private BarChart dockerImageSizeChart() {
+        final BarChart chart = new BarChart(Arrays.stream(Framework.values()).map(Framework::getName).toList());
+        final Bar bar = new Bar("Docker image size (MB)");
+        bar.setData(Arrays.stream(Framework.values())
+                .map(this::measureDockerImagesSize)
+                .toList());
+        chart.getDatasets().add(bar);
+        return chart;
+    }
+
     @Override
     public void testPlanExecutionStarted(TestPlan testPlan) {
-        if (!ReportUtils.REPORT_DIR.exists()) {
+        if (!REPORT_DIR.exists()) {
             try {
-                Files.createDirectory(ReportUtils.REPORT_DIR.toPath());
+                Files.createDirectory(REPORT_DIR.toPath());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
+        copyHTML();
 
         TestSuite.client = HttpClient.newBuilder()
                 .connectTimeout(Duration.of(10, ChronoUnit.SECONDS))
                 .build();
 
-        TestSuite.reports = new HashMap<>();
+        TestSuite.responses = new HashMap<>();
         Arrays.stream(Framework.values())
-                .forEach(f -> TestSuite.reports.put(f, new Report()));
+                .forEach(f -> TestSuite.responses.put(f, new HashMap<>()));
+
+        TestSuite.report = new Report();
+        TestSuite.report.getCharts().put("dockerImageSizeChart", dockerImageSizeChart());
+        writeJSON();
+    }
+
+    private void copyHTML() {
+        try {
+            Files.copy(Paths.get("src/test/resources/report.html"), new File(REPORT_DIR, "report.html").toPath(),
+                    StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(Paths.get("src/test/resources/report.mjs"), new File(REPORT_DIR, "report.mjs").toPath(),
+                    StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void writeJSON() {
+        final ObjectMapper mapper = new ObjectMapper();
+        try {
+            mapper.writeValue(new File(REPORT_DIR, "report.json"), TestSuite.report);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public void testPlanExecutionFinished(TestPlan testPlan) {
         // After all tests
         TestSuite.client.close();
-        ReportUtils.report();
+
+        // HTML report
+        writeJSON();
+
+        // Compare responses
+        final Map<Request.Data, HttpResponse<String>> responsesSpring = TestSuite.responses.get(Framework.SPRING);
+        final Map<Request.Data, HttpResponse<String>> responsesQuarkus = TestSuite.responses.get(Framework.QUARKUS);
+        final Map<Request.Data, HttpResponse<String>> responsesFenrir = TestSuite.responses.get(Framework.FENRIR);
+        responsesFenrir.forEach((request, response) -> {
+            Assertions.assertEquals(response.statusCode(), responsesSpring.get(request).statusCode(), "Response code is different [Fenrir -> Spring]");
+            Assertions.assertEquals(response.statusCode(), responsesQuarkus.get(request).statusCode(), "Response code is different [Fenrir -> Quarkus]");
+            Assertions.assertEquals(response.body(), responsesSpring.get(request).body(), "Response body is different [Fenrir -> Spring]");
+            Assertions.assertEquals(response.body(), responsesQuarkus.get(request).body(), "Response body is different [Fenrir -> Quarkus]");
+        });
     }
 }

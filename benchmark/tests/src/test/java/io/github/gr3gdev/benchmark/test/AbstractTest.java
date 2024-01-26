@@ -1,16 +1,15 @@
 package io.github.gr3gdev.benchmark.test;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.gr3gdev.benchmark.TestSuite;
-import io.github.gr3gdev.benchmark.test.data.Data;
 import io.github.gr3gdev.benchmark.test.data.Framework;
-import io.github.gr3gdev.benchmark.test.data.Report;
+import io.github.gr3gdev.benchmark.test.data.Request;
+import io.github.gr3gdev.benchmark.test.data.chart.LineChart;
 import io.github.gr3gdev.benchmark.test.parameterized.IteratorSource;
-import io.github.gr3gdev.benchmark.test.utils.CommandUtils;
 import io.github.gr3gdev.benchmark.test.utils.RequestUtils;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.testcontainers.containers.ContainerLaunchException;
 import org.testcontainers.containers.GenericContainer;
@@ -24,11 +23,12 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 
 public abstract class AbstractTest {
 
@@ -52,18 +52,31 @@ public abstract class AbstractTest {
     }
 
     static class FrameworkContainer extends GenericContainer<FrameworkContainer> {
-        FrameworkContainer(Framework framework) {
+        FrameworkContainer(Framework framework, long memory) {
             super(DockerImageName.parse("gr3gdev/" + framework.getService()));
             this.withExposedPorts(framework.getPort());
             this.withStartupTimeout(Duration.of(30, ChronoUnit.SECONDS));
             this.waitingFor(Wait.forLogMessage(framework.getContainerStarted(), 1));
+            // Memory : 256m
+            // CPU : 1
             this.withCreateContainerCmdModifier(cmd -> Objects.requireNonNull(cmd.getHostConfig())
-                    .withMemory(650L * 1024 * 1024)
+                    .withMemory(memory * 1024 * 1024)
                     .withMemorySwap(0L)
                     .withCpuCount(1L)
                     .withAutoRemove(true));
             this.withNetwork(NETWORK);
             this.withNetworkAliases(framework.getService());
+            // JVM memory = Heap memory + Metaspace + CodeCache + (ThreadStackSize * Number of Threads) + DirectByteBuffers + Jvm-native
+            // Heap memory (-Xms and -Xms)
+            long heapSize = memory / 4;
+            // Metaspace (-XX:MetaspaceSize and -XX:MaxMetaspaceSize)
+            long metaspaceSize = memory / 4;
+            // CodeCache (-XX:InitialCodeCacheSize and -XX:ReservedCodeCacheSize)
+            long codeCacheSize = memory / 8;
+            // ThreadStackSize (-Xss)
+            this.withEnv("JAVA_OPTS", String.format("-Xms%1$dm -Xmx%1$dm -XX:MetaspaceSize=%2$dM -XX:MaxMetaspaceSize=%2$dM " +
+                            "-XX:InitialCodeCacheSize=%3$dM -XX:ReservedCodeCacheSize=%3$dM -Xss%4$sk -XX:MaxRAM=%4$dm",
+                    heapSize, metaspaceSize, codeCacheSize, memory));
         }
     }
 
@@ -86,8 +99,7 @@ public abstract class AbstractTest {
 
     protected abstract Framework getFramework();
 
-    private void measureStartedTime(int index) {
-        final Report report = TestSuite.reports.get(getFramework());
+    private void measureStartedTime(IteratorSource.Iteration iteration) {
         final String service = getFramework().getService();
         final Pattern pattern = getFramework().getStartedPattern();
         String logs = logService.toString(StandardCharsets.UTF_8);
@@ -109,29 +121,19 @@ public abstract class AbstractTest {
             matcher = pattern.matcher(logs);
         }
         try {
-            report.getStats().put(index, new Report.Stats(matcher.group(1), new LinkedList<>()));
+            final float startedTime = Float.parseFloat(matcher.group(1));
+            ((LineChart) TestSuite.report.getCharts()
+                    .computeIfAbsent("startedTimeChart" + iteration.memory(),
+                            k -> new LineChart(IntStream.range(1, iteration.max() + 1).mapToObj(String::valueOf).toList())))
+                    .save(getFramework(), iteration, "started time", startedTime);
         } catch (IllegalStateException e) {
             throw new RuntimeException("Error with pattern [" + pattern + "]\n" + logs);
         }
     }
 
-    private String measureDockerImagesSize() {
-        final ObjectMapper mapper = new ObjectMapper();
-        final String json = CommandUtils.execute(List.of("docker", "image", "ls",
-                "--filter", "reference=gr3gdev/" + getFramework().getService(),
-                "--format", "json"));
-        try {
-            final JsonNode node = mapper.readTree(json);
-            return node.get("Size").asText();
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @BeforeEach
-    public void start() {
+    public void start(IteratorSource.Iteration iteration) {
         this.logService = new ToStringConsumer();
-        this.service = new FrameworkContainer(getFramework())
+        this.service = new FrameworkContainer(getFramework(), iteration.memory())
                 .withLogConsumer(logService)
                 .withEnv("DATABASE_URL", "jdbc:postgresql://database:5432/benchmark");
         try {
@@ -140,7 +142,7 @@ public abstract class AbstractTest {
             System.out.println(logService.toString(StandardCharsets.UTF_8));
             throw exc;
         }
-        TestSuite.reports.get(getFramework()).setDockerImageSize(measureDockerImagesSize());
+        measureStartedTime(iteration);
     }
 
     @AfterEach
@@ -149,16 +151,18 @@ public abstract class AbstractTest {
     }
 
     @ParameterizedTest(name = "{displayName} {arguments}")
-    @IteratorSource(10)
+    @IteratorSource({
+            @IteratorSource.IterationConf(count = 10, memory = 256L),
+            @IteratorSource.IterationConf(count = 10, memory = 512L)
+    })
     @DisplayName("Execute benchmark")
-    void benchmark(int index) {
-        measureStartedTime(index);
+    void benchmark(IteratorSource.Iteration iteration) {
+        start(iteration);
         final Framework framework = getFramework();
         final int exposePort = service.getMappedPort(getFramework().getPort());
-        Data.CREATES.forEach(request -> RequestUtils.executeRequest(index, request, framework, exposePort));
-        Data.UPDATES.forEach(request -> RequestUtils.executeRequest(index, request, framework, exposePort));
-        Data.FIND_ALL.forEach(request -> RequestUtils.executeRequest(index, request, framework, exposePort));
-        Data.FIND_BY_ID.forEach(request -> RequestUtils.executeRequest(index, request, framework, exposePort));
-        Data.DELETE_BY_ID.forEach(request -> RequestUtils.executeRequest(index, request, framework, exposePort));
+        Arrays.stream(Request.values())
+                .sorted(Comparator.comparing(Request::getOrder))
+                .map(Request::getData)
+                .forEach(d -> d.forEach(req -> RequestUtils.executeRequest(iteration, req, framework, exposePort)));
     }
 }

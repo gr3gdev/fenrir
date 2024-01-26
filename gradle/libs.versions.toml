@@ -6,11 +6,13 @@ hibernate = "6.4.1.Final"
 jackson = "2.16.1"
 hikari = "5.1.0"
 slf4j = "2.0.11"
+system-stubs-jupiter = "2.1.6"
 
 [libraries]
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 slf4j-jdk14 = { module = "org.slf4j:slf4j-jdk14", version.ref = "slf4j" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-jupiter" }
+system-stubs-jupiter = { module = "uk.org.webcompere:system-stubs-jupiter", version.ref = "system-stubs-jupiter" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
 thymeleaf = { module = "org.thymeleaf:thymeleaf", version.ref = "thymeleaf" }
 hibernate = { module = "org.hibernate.orm:hibernate-core", version.ref = "hibernate" }

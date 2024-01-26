@@ -9,6 +9,8 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -17,14 +19,34 @@ import java.util.stream.Stream;
 @ArgumentsSource(IteratorSource.IteratorArgumentsProvider.class)
 public @interface IteratorSource {
 
-    int value();
+    IterationConf[] value();
+
+    @Target({ElementType.ANNOTATION_TYPE, ElementType.METHOD})
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface IterationConf {
+        int count();
+
+        long memory();
+    }
+
+    record Iteration(int index, int max, long memory) {
+        @Override
+        public String toString() {
+            final int increment = index + 1;
+            return increment + ", memory=" + memory + "MB";
+        }
+    }
 
     class IteratorArgumentsProvider extends AnnotationBasedArgumentsProvider<IteratorSource> {
 
         @Override
         protected Stream<? extends Arguments> provideArguments(ExtensionContext context, IteratorSource annotation) {
-            return IntStream.range(0, annotation.value())
-                    .mapToObj(Arguments::of);
+            return Arrays.stream(annotation.value())
+                    .map(it -> IntStream.range(0, it.count())
+                            .mapToObj(i -> new Iteration(i, it.count(), it.memory()))
+                            .toList())
+                    .flatMap(Collection::stream)
+                    .map(Arguments::of);
         }
     }
 }

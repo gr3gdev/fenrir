@@ -2,20 +2,19 @@ package io.github.gr3gdev.fenrir;
 
 import io.github.gr3gdev.fenrir.event.SocketEvent;
 import io.github.gr3gdev.fenrir.plugin.Plugin;
+import io.github.gr3gdev.fenrir.properties.FenrirProperties;
 import io.github.gr3gdev.fenrir.runtime.Mode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -46,10 +45,11 @@ public final class FenrirApplication {
      */
     public static void run(final Class<?> mainClass) {
         if (mainClass.isAnnotationPresent(FenrirConfiguration.class)) {
-            final Properties fenrirProperties = new Properties();
-            try {
-                fenrirProperties.load(mainClass.getResourceAsStream("/fenrir.properties"));
-                replacePlaceHolders(fenrirProperties);
+            final FenrirProperties fenrirProperties = new FenrirProperties();
+            try (InputStream stream = mainClass.getResourceAsStream("/fenrir.properties")) {
+                if (stream != null) {
+                    fenrirProperties.load(stream);
+                }
             } catch (IOException e) {
                 throw new RuntimeException("Configuration file 'fenrir.properties' is not found !", e);
             }
@@ -64,32 +64,11 @@ public final class FenrirApplication {
         }
     }
 
-    private static void replacePlaceHolders(Properties fenrirProperties) {
-        final Pattern placeholderPattern = Pattern.compile("\\$\\{.*}");
-        fenrirProperties.keySet().forEach(key -> {
-            final Object value = fenrirProperties.get(key);
-            if (value instanceof String property) {
-                final Matcher matcher = placeholderPattern.matcher(property);
-                if (matcher.find()) {
-                    final String placeholder = property.substring(matcher.start(), matcher.end());
-                    final String[] values = placeholder.split(":");
-                    final String defaultValue;
-                    if (values.length > 1) {
-                        defaultValue = values[1];
-                    } else {
-                        defaultValue = "";
-                    }
-                    // Update property
-                    fenrirProperties.put(key, System.getProperty(values[0], defaultValue));
-                }
-            }
-        });
-    }
-
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static void initModes(
             final Class<? extends Mode<? extends SocketEvent>>[] modes,
-            final Class<?> mainClass, final Map<Class<?>, Plugin> plugins, final Server server, final Properties fenrirProperties) {
+            final Class<?> mainClass, final Map<Class<?>, Plugin> plugins, final Server server,
+            final FenrirProperties fenrirProperties) {
         LOGGER.trace("Init runtime modes in parallel");
         Arrays.stream(modes).parallel()
                 .forEach(mode -> {
@@ -104,7 +83,8 @@ public final class FenrirApplication {
                 });
     }
 
-    private static Map<Class<?>, Plugin> loadPlugins(final FenrirConfiguration configuration, final Class<?> mainClass, final Properties fenrirProperties) {
+    private static Map<Class<?>, Plugin> loadPlugins(final FenrirConfiguration configuration, final Class<?> mainClass,
+                                                     final FenrirProperties fenrirProperties) {
         LOGGER.trace("Load plugins in parallel");
         return Arrays.stream(configuration.plugins()).parallel()
                 .map(pluginClass -> initPlugin(pluginClass, mainClass, fenrirProperties))
@@ -117,7 +97,8 @@ public final class FenrirApplication {
         return server;
     }
 
-    private static Plugin initPlugin(final Class<? extends Plugin> pluginClass, final Class<?> mainClass, final Properties fenrirProperties) {
+    private static Plugin initPlugin(final Class<? extends Plugin> pluginClass, final Class<?> mainClass,
+                                     final FenrirProperties fenrirProperties) {
         try {
             LOGGER.trace("Init plugin {}", pluginClass.getCanonicalName());
             final Plugin plugin = pluginClass.getDeclaredConstructor().newInstance();

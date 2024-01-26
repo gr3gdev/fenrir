@@ -35,6 +35,9 @@ public final class JPAManager {
     public static void init(Class<?> mainClass, Properties fenrirProperties) {
         if (entityManagerFactory == null) {
             final JpaConfiguration jpaConfiguration = mainClass.getAnnotation(JpaConfiguration.class);
+            if (jpaConfiguration == null) {
+                throw new RuntimeException("Missing @JpaConfiguration annotation on the main class : " + mainClass.getCanonicalName());
+            }
             entityManagerFactory = new FenrirEntityManagerFactory(Arrays.asList(jpaConfiguration.entitiesClass()), fenrirProperties);
             entityManager = entityManagerFactory.getEntityManager();
         }

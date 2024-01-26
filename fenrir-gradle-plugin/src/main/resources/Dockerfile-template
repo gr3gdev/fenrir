@@ -19,6 +19,7 @@ RUN jlink \
 # Slim image
 FROM alpine
 ENV JAVA_HOME /jre
+ENV JAVA_OPTS "-Xms256m -Xmx256m -Xss512k"
 ENV PATH $JAVA_HOME/bin:$PATH
 RUN mkdir /libs
 COPY --from=customjre /work/customjre $JAVA_HOME
@@ -28,4 +29,4 @@ COPY ./entrypoint.sh /bin/entrypoint
 RUN chmod +x /bin/entrypoint
 
 ENTRYPOINT [ "/bin/entrypoint" ]
-CMD ["java", "-cp", "/libs/", "[mainClass]"]
+CMD ["sh", "-c", "java ${JAVA_OPTS} -cp /libs/ [mainClass]"]

@@ -63,7 +63,11 @@ public class HttpMode implements Mode<HttpSocketEvent> {
     }
 
     private List<Class<?>> parseRoutes(Class<?> mainClass) {
-        return Arrays.asList(mainClass.getAnnotation(HttpConfiguration.class).routes());
+        final HttpConfiguration annotation = mainClass.getAnnotation(HttpConfiguration.class);
+        if (annotation == null) {
+            throw new RuntimeException("Missing @HttpConfiguration annotation on the main class : " + mainClass.getCanonicalName());
+        }
+        return Arrays.asList(annotation.routes());
     }
 
     private Set<HttpSocketEvent> findSocketEvents(Map<Class<?>, Plugin> plugins, Class<?> routeClass, Map<Class<?>, Validator> validatorCache) {
