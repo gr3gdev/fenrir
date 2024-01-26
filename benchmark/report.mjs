@@ -1,5 +1,5 @@
 const charts = document.querySelector('.charts');
-const res = await fetch('./report.json');
+const res = await fetch('./tests/report.json');
 const report = await res.json();
 Object.keys(report.charts).forEach(async id => {
     const chart = report.charts[id];

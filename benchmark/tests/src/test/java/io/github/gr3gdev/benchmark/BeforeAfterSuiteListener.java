@@ -17,9 +17,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
@@ -29,8 +26,6 @@ import java.util.Map;
 
 @SuppressWarnings("unused")
 public class BeforeAfterSuiteListener implements TestExecutionListener {
-
-    private static final File REPORT_DIR = new File("build", "benchmark");
 
     private int measureDockerImagesSize(Framework framework) {
         final ObjectMapper mapper = new ObjectMapper();
@@ -58,15 +53,6 @@ public class BeforeAfterSuiteListener implements TestExecutionListener {
 
     @Override
     public void testPlanExecutionStarted(TestPlan testPlan) {
-        if (!REPORT_DIR.exists()) {
-            try {
-                Files.createDirectory(REPORT_DIR.toPath());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        copyHTML();
-
         TestSuite.client = HttpClient.newBuilder()
                 .connectTimeout(Duration.of(10, ChronoUnit.SECONDS))
                 .build();
@@ -80,21 +66,10 @@ public class BeforeAfterSuiteListener implements TestExecutionListener {
         writeJSON();
     }
 
-    private void copyHTML() {
-        try {
-            Files.copy(Paths.get("src/test/resources/report.html"), new File(REPORT_DIR, "report.html").toPath(),
-                    StandardCopyOption.REPLACE_EXISTING);
-            Files.copy(Paths.get("src/test/resources/report.mjs"), new File(REPORT_DIR, "report.mjs").toPath(),
-                    StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     private void writeJSON() {
         final ObjectMapper mapper = new ObjectMapper();
         try {
-            mapper.writeValue(new File(REPORT_DIR, "report.json"), TestSuite.report);
+            mapper.writeValue(new File("report.json"), TestSuite.report);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
