@@ -4,12 +4,16 @@ import io.github.gr3gdev.fenrir.Request;
 import io.github.gr3gdev.fenrir.Response;
 import io.github.gr3gdev.fenrir.annotation.Body;
 import io.github.gr3gdev.fenrir.annotation.Param;
+import io.github.gr3gdev.fenrir.interceptor.Interceptor;
 import io.github.gr3gdev.fenrir.reflect.ClassUtils;
-import io.github.gr3gdev.fenrir.validator.Validator;
+import io.github.gr3gdev.fenrir.validator.PluginValidator;
+import io.github.gr3gdev.fenrir.validator.RouteValidator;
 import io.github.gr3gdev.fenrir.validator.ValidatorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -26,38 +30,43 @@ public abstract class SocketPlugin<M, RQ extends Request, RS extends Response> i
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SocketPlugin.class);
 
-    private final Set<Validator> validators = new HashSet<>();
+    private final Set<PluginValidator<?>> validators = new HashSet<>();
 
     @Override
-    public final void addValidator(Validator validator) {
+    public final void addValidator(PluginValidator<?> validator) {
         LOGGER.trace("Add a validator : {}", validator.getClass().getCanonicalName());
         validators.add(validator);
     }
 
-    protected List<Validator> findValidatorsFor(Object object) {
+    @SuppressWarnings("unchecked")
+    protected <B> List<PluginValidator<B>> findValidatorsFor(Class<B> annotationClass) {
         return this.validators.stream()
-                .filter(v -> v.supports(object))
+                .filter(v -> v.getSupportedClass().equals(annotationClass))
+                .map(v -> (PluginValidator<B>) v)
                 .toList();
     }
 
     /**
      * Process a request and return a response.
      *
-     * @param routeClass the route class
-     * @param method     the method called
-     * @param request    the request
-     * @param properties properties for Content-Type, Http Code for response, ...
-     * @param validators the validators execute before processing the request
+     * @param routeClass   the route class
+     * @param method       the method called
+     * @param request      the request
+     * @param properties   properties for Content-Type, Http Code for response, ...
+     * @param validators   the validators execute before processing the request
+     * @param interceptors list of interceptors
      * @return Response
      */
     @SuppressWarnings("unchecked")
-    public final RS process(Class<?> routeClass, Method method, RQ request, Map<String, Object> properties, List<Validator> validators) {
+    public final RS process(Class<?> routeClass, Method method, RQ request, Map<String, Object> properties,
+                            List<RouteValidator> validators, List<Interceptor<?, RS, ?>> interceptors) {
         LOGGER.trace("Process a request : {}", routeClass.getCanonicalName());
         final Map<String, Class<?>> genericClasses = ClassUtils.findGenericClasses(routeClass);
         final Object routeInstance = ClassUtils.newInstance(routeClass);
         final Map<String, Class<?>> parameterClasses = ClassUtils.findGenericClasses(method, genericClasses);
         final List<Object> parameterValues = new LinkedList<>();
         try {
+            executeValidatorByAnnotation(method, request, properties);
             for (final Parameter parameter : method.getParameters()) {
                 // Validate parameters (by plugin)
                 parameterValues.add(extractParameter(parameter, request, properties, parameterClasses.get(parameter.getName())));
@@ -67,8 +76,8 @@ public abstract class SocketPlugin<M, RQ extends Request, RS extends Response> i
                 methodReturn = method.invoke(routeInstance);
             } else {
                 final Object[] parameterValuesArray = parameterValues.toArray();
-                final List<Validator> validatorsToExecute = validators.stream().filter(v -> v.supports(parameterValuesArray)).toList();
-                for (final Validator validator : validatorsToExecute) {
+                final List<RouteValidator> validatorsToExecute = validators.stream().filter(v -> v.supports(parameterValuesArray)).toList();
+                for (final RouteValidator validator : validatorsToExecute) {
                     // Validate parameters (by request)
                     validator.validate(request, properties, parameterValuesArray);
                 }
@@ -76,7 +85,12 @@ public abstract class SocketPlugin<M, RQ extends Request, RS extends Response> i
             }
             return process((M) methodReturn, properties);
         } catch (ValidatorException e) {
-            return (RS) e.getResponse();
+            final RS response = (RS) e.getResponse();
+            return interceptors.stream()
+                    .filter(i -> i.supports(e))
+                    .findFirst()
+                    .map(i -> process((M) i.replace(() -> response), properties))
+                    .orElse(response);
         } catch (Exception e) {
             return processInternalError(properties, e);
         }
@@ -92,19 +106,28 @@ public abstract class SocketPlugin<M, RQ extends Request, RS extends Response> i
     protected abstract RS processInternalError(Map<String, Object> properties, Exception exception);
 
     Object extractParameter(Parameter parameter, RQ request, Map<String, Object> properties, Class<?> parameterClass) throws ValidatorException {
+        final Object result;
+        executeValidatorByAnnotation(parameter, request, properties);
         if (parameter.isAnnotationPresent(Param.class)) {
             final Param param = parameter.getAnnotation(Param.class);
-            return request.param(param.value())
+            result = request.param(param.value())
                     .map(value -> mapToParameterType(value, parameterClass))
                     .orElse(null);
         } else if (parameter.isAnnotationPresent(Body.class)) {
-            final Body body = parameter.getAnnotation(Body.class);
-            for (final Validator validator : findValidatorsFor(body)) {
-                validator.validate(request, properties, body);
-            }
-            return extractBody(parameterClass, request);
+            result = extractBody(parameterClass, request);
         } else {
-            return null;
+            result = null;
+        }
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    <B> void executeValidatorByAnnotation(AnnotatedElement annotatedElement, RQ request,
+                                          Map<String, Object> properties) throws ValidatorException {
+        for (final Annotation annotation : annotatedElement.getAnnotations()) {
+            for (final PluginValidator<B> validator : findValidatorsFor((Class<B>) annotation.annotationType())) {
+                validator.validate(request, properties, (B) annotatedElement.getAnnotation(annotation.annotationType()));
+            }
         }
     }
 
@@ -132,7 +155,7 @@ public abstract class SocketPlugin<M, RQ extends Request, RS extends Response> i
         Arrays.stream(parameterClass.getDeclaredFields())
                 .forEach(field -> {
                     try {
-                        ClassUtils.findSetter(parameterClass, field.getName())
+                        ClassUtils.findSetter(parameterClass, field)
                                 .invoke(parameterInstance,
                                         request.param(field.getName()).orElse(null));
                     } catch (IllegalAccessException | InvocationTargetException e) {

@@ -14,6 +14,7 @@ dependencies {
     implementation(project(":fenrir-api"))
     implementation(project(":fenrir-http"))
     implementation(project(":fenrir-jpa"))
+    implementation(project(":fenrir-security"))
     implementation(project(":fenrir-thymeleaf"))
 
     implementation("jakarta.persistence:jakarta.persistence-api:3.1.0")

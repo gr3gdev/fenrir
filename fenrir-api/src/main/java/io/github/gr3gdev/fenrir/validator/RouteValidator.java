@@ -5,9 +5,10 @@ import io.github.gr3gdev.fenrir.Request;
 import java.util.Map;
 
 /**
- * Validator for plugin.
+ * Validator only for route.
  */
-public interface Validator {
+public interface RouteValidator {
+
     /**
      * Check if the object is concerned by the validator.
      *
@@ -25,4 +26,5 @@ public interface Validator {
      * @throws ValidatorException throw when not valid
      */
     void validate(Request request, Map<String, Object> properties, Object... object) throws ValidatorException;
+
 }

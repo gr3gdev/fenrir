@@ -11,27 +11,25 @@ import java.util.Map;
 /**
  * Validator for {@link JsonPlugin}.
  */
-public class JsonValidator implements Validator {
+public class JsonValidator implements PluginValidator<Body> {
+
     /**
      * {@inheritDoc}
      */
     @Override
-    public boolean supports(Object... object) {
-        return object.length == 1 && object[0] instanceof Body;
+    public Class<Body> getSupportedClass() {
+        return Body.class;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void validate(Request request, Map<String, Object> properties, Object... object) throws ValidatorException {
-        if (object.length == 1) {
-            final Body body = (Body) object[0];
-            final HttpRequest httpRequest = (HttpRequest) request;
-            final String requestContentType = httpRequest.header("Content-Type").orElse("");
-            if (body.contentType().equalsIgnoreCase(requestContentType)) {
-                return;
-            }
+    public void validate(Request request, Map<String, Object> properties, Body annotation) throws ValidatorException {
+        final HttpRequest httpRequest = (HttpRequest) request;
+        final String requestContentType = httpRequest.header("Content-Type").orElse("");
+        if (annotation.contentType().equalsIgnoreCase(requestContentType)) {
+            return;
         }
         throw new JsonValidatorException((String) properties.getOrDefault(HttpMode.CONTENT_TYPE, "application/json"));
     }

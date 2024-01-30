@@ -2,7 +2,7 @@ package io.github.gr3gdev.fenrir.annotation;
 
 import io.github.gr3gdev.fenrir.http.HttpMethod;
 import io.github.gr3gdev.fenrir.http.HttpStatus;
-import io.github.gr3gdev.fenrir.validator.Validator;
+import io.github.gr3gdev.fenrir.validator.RouteValidator;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -48,5 +48,5 @@ public @interface Listener {
      *
      * @return Array of Class
      */
-    Class<? extends Validator>[] validators() default {};
+    Class<? extends RouteValidator>[] validators() default {};
 }

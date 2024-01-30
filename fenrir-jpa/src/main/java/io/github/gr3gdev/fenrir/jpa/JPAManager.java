@@ -7,6 +7,8 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaDelete;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -18,6 +20,8 @@ import java.util.stream.Collectors;
  * Manager for JPA.
  */
 public final class JPAManager {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(JPAManager.class);
 
     private static FenrirEntityManagerFactory entityManagerFactory;
     private static EntityManager entityManager;
@@ -34,12 +38,14 @@ public final class JPAManager {
      */
     public static void init(Class<?> mainClass, Properties fenrirProperties) {
         if (entityManagerFactory == null) {
+            LOGGER.trace("Starting init the entity manager");
             final JpaConfiguration jpaConfiguration = mainClass.getAnnotation(JpaConfiguration.class);
             if (jpaConfiguration == null) {
                 throw new RuntimeException("Missing @JpaConfiguration annotation on the main class : " + mainClass.getCanonicalName());
             }
             entityManagerFactory = new FenrirEntityManagerFactory(Arrays.asList(jpaConfiguration.entitiesClass()), fenrirProperties);
             entityManager = entityManagerFactory.getEntityManager();
+            LOGGER.trace("Entity manager is ready");
         }
     }
 

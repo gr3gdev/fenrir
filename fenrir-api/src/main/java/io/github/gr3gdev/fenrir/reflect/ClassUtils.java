@@ -11,6 +11,11 @@ import java.util.stream.Collectors;
  */
 public final class ClassUtils {
 
+    /**
+     * Cache for object instantiate with default constructor.
+     */
+    private static final Map<Class<?>, Object> instanceCache = new HashMap<>();
+
     private ClassUtils() {
         // None
     }
@@ -23,7 +28,9 @@ public final class ClassUtils {
      */
     public static Constructor<?> findConstructor(Class<?> objectClass) {
         final Constructor<?>[] constructors = objectClass.getConstructors();
-        if (constructors.length == 1) {
+        if (objectClass.isInterface()) {
+            throw new RuntimeException("Cannot instantiate the interface " + objectClass.getCanonicalName());
+        } else if (constructors.length == 1) {
             return constructors[0];
         } else {
             throw new RuntimeException("Only one constructor is supported for " + objectClass.getCanonicalName());
@@ -92,7 +99,13 @@ public final class ClassUtils {
             }
             return constructor.newInstance(parameters.toArray());
         } else {
-            return constructor.newInstance();
+            return instanceCache.computeIfAbsent(objectClass, k -> {
+                try {
+                    return constructor.newInstance();
+                } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+                    throw new RuntimeException(e);
+                }
+            });
         }
     }
 
@@ -112,11 +125,13 @@ public final class ClassUtils {
      * Find the setter method (by reflection).
      *
      * @param objectClass the object class
-     * @param fieldName   the field name
+     * @param field       the field
      * @return Method
      */
     @SneakyThrows
-    public static Method findSetter(Class<?> objectClass, String fieldName) {
-        return objectClass.getMethod("set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1));
+    public static Method findSetter(Class<?> objectClass, Field field) {
+        final String fieldName = field.getName();
+        final String setter = "set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+        return objectClass.getMethod(setter, field.getType());
     }
 }

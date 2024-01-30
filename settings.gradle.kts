@@ -6,3 +6,4 @@ plugins {
 rootProject.name = "fenrir"
 include("fenrir-api", "fenrir-http", "fenrir-samples", "fenrir-thymeleaf", "fenrir-jpa")
 include("fenrir-gradle-plugin")
+include("fenrir-security")
