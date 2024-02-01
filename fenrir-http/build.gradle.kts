@@ -16,7 +16,7 @@ dependencies {
     api(libs.jackson.databind)
     api(libs.jackson.jdk8)
     api(libs.jackson.jsr310)
-    implementation(project(":fenrir-api"))
+    api(project(":fenrir-api"))
     testImplementation(libs.junit.jupiter)
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
