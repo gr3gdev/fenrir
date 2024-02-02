@@ -15,13 +15,11 @@ import java.util.List;
  */
 @Getter
 class FenrirConfigurationInternal {
-    private final int port;
     private final List<Class<? extends Plugin>> plugins;
     private final List<Class<? extends Mode<? extends SocketEvent, ? extends Response>>> modes;
     private final List<Class<? extends Interceptor<?, ? extends Response, ? extends Plugin>>> interceptors;
 
     public FenrirConfigurationInternal(FenrirConfiguration annotation) {
-        this.port = annotation.port();
         this.plugins = new ArrayList<>();
         this.modes = new ArrayList<>();
         this.interceptors = new ArrayList<>();

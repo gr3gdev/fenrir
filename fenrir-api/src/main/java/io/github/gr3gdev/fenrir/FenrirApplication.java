@@ -1,6 +1,7 @@
 package io.github.gr3gdev.fenrir;
 
 import io.github.gr3gdev.fenrir.event.SocketEvent;
+import io.github.gr3gdev.fenrir.event.StartupEvent;
 import io.github.gr3gdev.fenrir.interceptor.Interceptor;
 import io.github.gr3gdev.fenrir.plugin.Plugin;
 import io.github.gr3gdev.fenrir.properties.FenrirProperties;
@@ -13,9 +14,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -43,10 +43,12 @@ public final class FenrirApplication {
     /**
      * Run the server.
      *
-     * @param mainClass the main class (used for reflection)
+     * @param mainClass        the main class (used for reflection)
+     * @param startupListeners listeners fired when the server is initialised
      */
+    @SafeVarargs
     @SuppressWarnings("rawtypes")
-    public static void run(final Class<?> mainClass) {
+    public static void run(final Class<?> mainClass, final Consumer<StartupEvent>... startupListeners) {
         if (mainClass.isAnnotationPresent(FenrirConfiguration.class)) {
             LOGGER.trace("Starting...");
             final Instant start = Instant.now();
@@ -62,62 +64,50 @@ public final class FenrirApplication {
                 throw new RuntimeException("Configuration file 'fenrir.properties' is not found !", e);
             }
             LOGGER.trace("Init interceptors...");
-            final List<Interceptor> interceptors = configuration.getInterceptors().stream()
-                    .map(i -> (Interceptor) ClassUtils.newInstance(i))
-                    .toList();
+            final List<Interceptor> interceptors = configuration.getInterceptors().stream().map(i -> (Interceptor) ClassUtils.newInstance(i)).toList();
             LOGGER.trace("Init plugins...");
             final Map<Class<?>, Plugin> plugins = loadPlugins(configuration, mainClass, fenrirProperties);
-            LOGGER.trace("Init server...");
-            final Server server = initServer(configuration);
             LOGGER.trace("Init modes...");
+            final Server server = new Server(determinePort(fenrirProperties));
             initModes(configuration, mainClass, plugins, server, fenrirProperties, interceptors);
-            server.run(start);
+            server.run(start, startupListeners);
         } else {
             throw new RuntimeException("The main class must have a @FenrirConguration annotation");
         }
     }
 
+    private static int determinePort(FenrirProperties fenrirProperties) {
+        final String port = fenrirProperties.getProperty("fenrir.port");
+        return Optional.ofNullable(port).map(Integer::parseInt).orElse(0);
+    }
+
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static void initModes(
-            final FenrirConfigurationInternal configuration,
-            final Class<?> mainClass, final Map<Class<?>, Plugin> plugins, final Server server,
-            final FenrirProperties fenrirProperties, final List<Interceptor> interceptors) {
-        configuration.getModes().parallelStream()
-                .forEach(mode -> {
-                    try {
-                        final Mode instance = mode.getDeclaredConstructor().newInstance();
-                        LOGGER.trace("Init mode {}", instance.getClass().getCanonicalName());
-                        final Set<? extends SocketEvent> socketEvents = instance.init(mainClass, plugins, fenrirProperties, interceptors);
-                        server.addEvents(socketEvents, instance.getSocketReaderClass());
-                    } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
-                             | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-                        throw new RuntimeException("Unable to load runtime mode " + mode.getCanonicalName(), e);
-                    }
-                });
+    private static void initModes(final FenrirConfigurationInternal configuration, final Class<?> mainClass, final Map<Class<?>, Plugin> plugins, final Server server, final FenrirProperties fenrirProperties, final List<Interceptor> interceptors) {
+        configuration.getModes().parallelStream().forEach(mode -> {
+            try {
+                final Mode instance = mode.getDeclaredConstructor().newInstance();
+                LOGGER.trace("Init mode {}", instance.getClass().getCanonicalName());
+                final Set<? extends SocketEvent> socketEvents = instance.init(mainClass, plugins, fenrirProperties, interceptors);
+                server.addEvents(socketEvents, instance.getSocketReaderClass());
+            } catch (InstantiationException | IllegalAccessException | IllegalArgumentException |
+                     InvocationTargetException | NoSuchMethodException | SecurityException e) {
+                throw new RuntimeException("Unable to load runtime mode " + mode.getCanonicalName(), e);
+            }
+        });
     }
 
-    private static Map<Class<?>, Plugin> loadPlugins(final FenrirConfigurationInternal configuration, final Class<?> mainClass,
-                                                     final FenrirProperties fenrirProperties) {
-        return configuration.getPlugins().parallelStream()
-                .map(pluginClass -> initPlugin(pluginClass, mainClass, fenrirProperties))
-                .collect(Collectors.toMap(Plugin::getClass, Function.identity()));
+    private static Map<Class<?>, Plugin> loadPlugins(final FenrirConfigurationInternal configuration, final Class<?> mainClass, final FenrirProperties fenrirProperties) {
+        return configuration.getPlugins().parallelStream().map(pluginClass -> initPlugin(pluginClass, mainClass, fenrirProperties)).collect(Collectors.toMap(Plugin::getClass, Function.identity()));
     }
 
-    private static Server initServer(final FenrirConfigurationInternal configuration) {
-        final Server server = new Server();
-        server.setPort(configuration.getPort());
-        return server;
-    }
-
-    private static Plugin initPlugin(final Class<? extends Plugin> pluginClass, final Class<?> mainClass,
-                                     final FenrirProperties fenrirProperties) {
+    private static Plugin initPlugin(final Class<? extends Plugin> pluginClass, final Class<?> mainClass, final FenrirProperties fenrirProperties) {
         try {
             LOGGER.trace("Init plugin {}", pluginClass.getCanonicalName());
             final Plugin plugin = pluginClass.getDeclaredConstructor().newInstance();
             plugin.init(mainClass, fenrirProperties);
             return plugin;
-        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
-                 | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException |
+                 InvocationTargetException | NoSuchMethodException | SecurityException e) {
             throw new RuntimeException(e);
         }
     }

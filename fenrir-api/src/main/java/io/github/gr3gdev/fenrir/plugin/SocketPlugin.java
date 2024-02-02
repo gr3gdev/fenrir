@@ -49,20 +49,20 @@ public abstract class SocketPlugin<M, RQ extends Request, RS extends Response> i
     /**
      * Process a request and return a response.
      *
-     * @param routeClass   the route class
-     * @param method       the method called
-     * @param request      the request
-     * @param properties   properties for Content-Type, Http Code for response, ...
-     * @param validators   the validators execute before processing the request
-     * @param interceptors list of interceptors
+     * @param routeClass    the route class
+     * @param routeInstance the instance of the route class
+     * @param method        the method called
+     * @param request       the request
+     * @param properties    properties for Content-Type, Http Code for response, ...
+     * @param validators    the validators execute before processing the request
+     * @param interceptors  list of interceptors
      * @return Response
      */
     @SuppressWarnings("unchecked")
-    public final RS process(Class<?> routeClass, Method method, RQ request, Map<String, Object> properties,
+    public final RS process(Class<?> routeClass, Object routeInstance, Method method, RQ request, Map<String, Object> properties,
                             List<RouteValidator> validators, List<Interceptor<?, RS, ?>> interceptors) {
         LOGGER.trace("Process a request : {}", routeClass.getCanonicalName());
         final Map<String, Class<?>> genericClasses = ClassUtils.findGenericClasses(routeClass);
-        final Object routeInstance = ClassUtils.newInstance(routeClass);
         final Map<String, Class<?>> parameterClasses = ClassUtils.findGenericClasses(method, genericClasses);
         final List<Object> parameterValues = new LinkedList<>();
         try {

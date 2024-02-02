@@ -91,7 +91,11 @@ public final class ClassUtils {
     public static Object newInstance(Class<?> objectClass, Object... parameterValues) {
         final Constructor<?> constructor = findConstructor(objectClass);
         if (parameterValues != null && parameterValues.length == constructor.getParameterCount()) {
-            return constructor.newInstance(parameterValues);
+            if (parameterValues.length == 0) {
+                return newInstanceCache(objectClass, constructor);
+            } else {
+                return constructor.newInstance(parameterValues);
+            }
         } else if (constructor.getParameterCount() > 0) {
             final List<Object> parameters = new ArrayList<>();
             for (final Class<?> parameterType : constructor.getParameterTypes()) {
@@ -99,14 +103,18 @@ public final class ClassUtils {
             }
             return constructor.newInstance(parameters.toArray());
         } else {
-            return instanceCache.computeIfAbsent(objectClass, k -> {
-                try {
-                    return constructor.newInstance();
-                } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                    throw new RuntimeException(e);
-                }
-            });
+            return newInstanceCache(objectClass, constructor);
         }
+    }
+
+    private static Object newInstanceCache(Class<?> objectClass, Constructor<?> constructor) {
+        return instanceCache.computeIfAbsent(objectClass, k -> {
+            try {
+                return constructor.newInstance();
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     /**

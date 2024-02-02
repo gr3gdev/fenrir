@@ -2,9 +2,6 @@ package io.github.gr3gdev.fenrir;
 
 import io.github.gr3gdev.fenrir.event.SocketEvent;
 import io.github.gr3gdev.fenrir.event.StartupEvent;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Delegate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,48 +20,42 @@ import java.util.function.Consumer;
 /**
  * Internal server.
  */
-@NoArgsConstructor
 final class Server {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Server.class);
 
     private final AtomicBoolean active = new AtomicBoolean(false);
-    private ServerSocket serverSocket;
-
-    @Setter
-    private int port;
+    private final ServerSocket serverSocket;
 
     private Set<? extends SocketEvent> socketEvents = new HashSet<>();
     private Class<? extends SocketReader> socketReaderClass;
 
-    @Delegate(types = AddStartupEvent.class)
-    private final List<Consumer<StartupEvent>> startupEvents = new LinkedList<>();
-
-    void run(Instant start) {
+    Server(int port) {
         try {
-            active.set(true);
+            this.serverSocket = new ServerSocket(port);
+        } catch (IOException exc) {
+            throw new RuntimeException(exc);
+        }
+    }
+
+    void run(Instant start, Consumer<StartupEvent>[] startupListeners) {
+        try {
             final byte[] banner = Objects.requireNonNull(getClass().getResourceAsStream("/banner.txt")).readAllBytes();
             final Properties properties = new Properties();
             properties.load(getClass().getResourceAsStream("/version.properties"));
-
-            if (serverSocket == null) {
-                try {
-                    serverSocket = new ServerSocket(port);
-                } catch (IOException exc) {
-                    throw new RuntimeException(exc);
-                }
-            }
-
             LOGGER.info(new String(banner, StandardCharsets.UTF_8));
 
-            final StartupEvent startupEvent = new StartupEvent();
-            startupEvents.forEach(e -> e.accept(startupEvent));
             final String timeInMs = String.valueOf(Duration.between(start, Instant.now()).toMillis() / 1000f);
             LOGGER.info("Server ({}) started on port {} in {} seconds",
-                    properties.getProperty("version"), port, timeInMs);
+                    properties.getProperty("version"), serverSocket.getLocalPort(), timeInMs);
 
+            if (startupListeners != null) {
+                Arrays.stream(startupListeners).forEach(s -> s.accept(new StartupEvent(serverSocket.getLocalPort(), active)));
+            }
+
+            this.active.set(true);
             while (active.get()) {
-                if (serverSocket != null && !serverSocket.isClosed()) {
+                if (!serverSocket.isClosed()) {
                     try {
                         Thread.ofPlatform().name("Fenrir.Server SocketReader")
                                 .start(socketReaderClass.getDeclaredConstructor(Socket.class, Set.class)
@@ -79,10 +70,9 @@ final class Server {
             }
 
             this.serverSocket.close();
-
             LOGGER.info("Server stopped");
+
             this.socketEvents.clear();
-            this.startupEvents.clear();
         } catch (IOException exc) {
             LOGGER.error("Initialization error", exc);
         }

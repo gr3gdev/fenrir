@@ -17,13 +17,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface FenrirConfiguration {
     /**
-     * The port, 9000 by default.
-     *
-     * @return int
-     */
-    int port() default 9000;
-
-    /**
      * The list of the plugins.
      *
      * @return Array of Class

@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.util.logging.LogManager;
 
 @FenrirConfiguration(
-        port = 9003,
         plugins = {JsonPlugin.class, JpaPlugin.class},
         modes = {HttpMode.class}
 )
