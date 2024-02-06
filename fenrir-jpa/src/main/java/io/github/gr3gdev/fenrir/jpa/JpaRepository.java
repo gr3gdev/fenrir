@@ -1,9 +1,11 @@
 package io.github.gr3gdev.fenrir.jpa;
 
+import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.TypedQuery;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static io.github.gr3gdev.fenrir.jpa.JPAManager.entityManager;
 
@@ -37,15 +39,12 @@ public interface JpaRepository<E, K> extends JpaCrudRepository<E, K> {
      * @return count of lines updated
      */
     default int update(String qlString, Map<String, Object> parameters) {
-        try {
-            entityManager().getTransaction().begin();
+        return executeInTransaction(() -> {
             final TypedQuery<E> query = entityManager()
                     .createQuery(qlString, getDomainClass());
             parameters.forEach(query::setParameter);
             return query.executeUpdate();
-        } finally {
-            entityManager().getTransaction().commit();
-        }
+        });
     }
 
 }

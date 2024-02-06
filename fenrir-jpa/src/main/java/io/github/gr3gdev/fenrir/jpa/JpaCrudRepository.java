@@ -11,7 +11,7 @@ import static io.github.gr3gdev.fenrir.jpa.JPAManager.*;
  * @param <E> the entity
  * @param <K> the type of the primary key
  */
-public interface JpaCrudRepository<E, K> {
+public interface JpaCrudRepository<E, K> extends JpaTransactionalRepository {
 
     /**
      * @return Class of the entity
@@ -60,8 +60,7 @@ public interface JpaCrudRepository<E, K> {
         if (entity == null) {
             throw new RuntimeException("Cannot save a null entity");
         }
-        try {
-            entityManager().getTransaction().begin();
+        return executeInTransaction(() -> {
             if (getIdValue(getDomainClass(), getIdClass(), entity) == null) {
                 entityManager().persist(entity);
                 entityManager().flush();
@@ -69,9 +68,7 @@ public interface JpaCrudRepository<E, K> {
             } else {
                 return entityManager().merge(entity);
             }
-        } finally {
-            entityManager().getTransaction().commit();
-        }
+        });
     }
 
     /**
@@ -83,12 +80,7 @@ public interface JpaCrudRepository<E, K> {
         if (entity == null) {
             throw new RuntimeException("Cannot delete a null entity");
         }
-        try {
-            entityManager().getTransaction().begin();
-            entityManager().detach(entity);
-        } finally {
-            entityManager().getTransaction().commit();
-        }
+        executeInTransaction(() -> entityManager().detach(entity));
     }
 
     /**
@@ -98,13 +90,8 @@ public interface JpaCrudRepository<E, K> {
      * @return count of deleted lines
      */
     default int deleteById(K id) {
-        try {
-            entityManager().getTransaction().begin();
-            return entityManager().createQuery(
-                            deleteFromClass(getDomainClass(), getPrimaryKeyFilter(getDomainClass(), id)))
-                    .executeUpdate();
-        } finally {
-            entityManager().getTransaction().commit();
-        }
+        return executeInTransaction(() -> entityManager().createQuery(
+                        deleteFromClass(getDomainClass(), getPrimaryKeyFilter(getDomainClass(), id)))
+                .executeUpdate());
     }
 }

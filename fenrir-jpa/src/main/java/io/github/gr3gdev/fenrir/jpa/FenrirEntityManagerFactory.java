@@ -7,9 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl;
 import org.hibernate.jpa.boot.internal.PersistenceUnitInfoDescriptor;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -31,8 +29,7 @@ class FenrirEntityManagerFactory {
 
     private EntityManagerFactory getEntityManagerFactory() {
         final PersistenceUnitInfo persistenceUnitInfo = getPersistenceUnitInfo(getClass().getSimpleName());
-        final Map<String, Object> configuration = new HashMap<>();
-        return new EntityManagerFactoryBuilderImpl(new PersistenceUnitInfoDescriptor(persistenceUnitInfo), configuration).build();
+        return new EntityManagerFactoryBuilderImpl(new PersistenceUnitInfoDescriptor(persistenceUnitInfo), null).build();
     }
 
     private FenrirPersistenceUnitInfo getPersistenceUnitInfo(String name) {
