@@ -50,9 +50,10 @@ public class RequestUtils {
 
             TestSuite.responses.get(framework).put(request, httpResponse);
 
+            final String key = "requestTimeChart" + request.name() + iteration.memory();
             ((LineChart) TestSuite.report.getCharts()
-                    .computeIfAbsent("requestTimeChart" + request.name() + iteration.memory(),
-                            k -> new LineChart(IntStream.range(1, iteration.max() + 1).mapToObj(String::valueOf).toList())))
+                    .computeIfAbsent(key,
+                            k -> new LineChart(key, IntStream.range(1, iteration.max() + 1).mapToObj(String::valueOf).toList(), "Average request time (ms)")))
                     .save(framework, iteration, request.toString(), time);
 
             sleep(100);

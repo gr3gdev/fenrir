@@ -3,8 +3,8 @@ package io.github.gr3gdev.benchmark.test.data.chart;
 import java.util.List;
 
 public class BarChart extends Chart<Bar> {
-    public BarChart(List<String> labels) {
-        super(labels);
+    public BarChart(String key, List<String> labels) {
+        super(key, labels);
     }
 
     @Override

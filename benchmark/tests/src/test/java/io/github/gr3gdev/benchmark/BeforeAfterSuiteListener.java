@@ -8,6 +8,7 @@ import io.github.gr3gdev.benchmark.test.data.Report;
 import io.github.gr3gdev.benchmark.test.data.Request;
 import io.github.gr3gdev.benchmark.test.data.chart.Bar;
 import io.github.gr3gdev.benchmark.test.data.chart.BarChart;
+import io.github.gr3gdev.benchmark.test.data.chart.LineChart;
 import io.github.gr3gdev.benchmark.test.utils.CommandUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.platform.launcher.TestExecutionListener;
@@ -27,7 +28,7 @@ import java.util.Map;
 @SuppressWarnings("unused")
 public class BeforeAfterSuiteListener implements TestExecutionListener {
 
-    private int measureDockerImagesSize(Framework framework) {
+    private Double measureDockerImagesSize(Framework framework) {
         final ObjectMapper mapper = new ObjectMapper();
         final String json = CommandUtils.execute(List.of("docker", "image", "ls",
                 "--filter", "reference=gr3gdev/" + framework.getService(),
@@ -35,14 +36,15 @@ public class BeforeAfterSuiteListener implements TestExecutionListener {
         try {
             final JsonNode node = mapper.readTree(json);
             final String size = node.get("Size").asText();
-            return Integer.parseInt(size.substring(0, size.toUpperCase().indexOf("MB")));
+            return Double.parseDouble(size.substring(0, size.toUpperCase().indexOf("MB")));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
     }
 
     private BarChart dockerImageSizeChart() {
-        final BarChart chart = new BarChart(Arrays.stream(Framework.values()).map(Framework::getName).toList());
+        final String key = "dockerImageSize";
+        final BarChart chart = new BarChart(key, Arrays.stream(Framework.values()).map(Framework::getName).toList());
         final Bar bar = new Bar("Docker image size (MB)");
         bar.setData(Arrays.stream(Framework.values())
                 .map(this::measureDockerImagesSize)
@@ -67,6 +69,23 @@ public class BeforeAfterSuiteListener implements TestExecutionListener {
     }
 
     private void writeJSON() {
+        final Map<String, BarChart> averageCharts = new HashMap<>();
+        TestSuite.report.getCharts().forEach((name, chart) -> {
+            if (chart instanceof LineChart lineChart) {
+                final BarChart barChart = new BarChart(chart.getKey(), Arrays.stream(Framework.values()).map(Framework::getName).toList());
+                final Bar bar = new Bar(lineChart.getAverageLabel());
+                bar.setData(lineChart.getDatasets().stream()
+                        .map(d -> d.getData().stream()
+                                .mapToDouble(Float::doubleValue)
+                                .average()
+                                .orElse(Double.NaN))
+                        .toList());
+                barChart.getDatasets().add(bar);
+                averageCharts.put(chart.getKey() + "Chart", barChart);
+            }
+        });
+        TestSuite.report.getCharts().putAll(averageCharts);
+
         final ObjectMapper mapper = new ObjectMapper();
         try {
             mapper.writeValue(new File("report.json"), TestSuite.report);

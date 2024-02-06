@@ -37,13 +37,6 @@ public class HttpRequestImpl implements HttpRequest {
     public HttpRequestImpl(String remoteAddress, InputStream input) {
         LOGGER.trace("New request");
         this.remoteAddress = remoteAddress;
-        /*
-        final DataInputStream in = new DataInputStream(new BufferedInputStream(input));
-        final StringBuilder data = new StringBuilder();
-        do {
-            data.append((char) in.read());
-        } while (in.available() != 0);
-         */
         final BufferedReader reader = new BufferedReader(new InputStreamReader(input));
         final String requestLine = reader.readLine();
         if (requestLine != null) {
@@ -100,13 +93,13 @@ public class HttpRequestImpl implements HttpRequest {
             final Optional<String> contentType = request.header("Content-Type");
             contentType.ifPresentOrElse(
                     it -> {
-                        if (it.startsWith("application/json")) {
-                            LOGGER.trace("application/json : set body parameter");
-                            request.params("body", payload.toString());
-                        }
                         if (it.equals("application/x-www-form-urlencoded")) {
                             LOGGER.trace("application/x-www-form-urlencoded : extract parameters");
                             extractParameters(payload, request);
+                        } else {
+                            // By default, set the payload into body's parameter
+                            LOGGER.trace("{} : set body parameter", it);
+                            request.params("body", payload.toString());
                         }
                     }, () -> LOGGER.warn("No Content-Type found"));
             if (pathParameters != null) {

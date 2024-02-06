@@ -6,8 +6,11 @@ import io.github.gr3gdev.benchmark.test.parameterized.IteratorSource;
 import java.util.List;
 
 public class LineChart extends Chart<Line> {
-    public LineChart(List<String> labels) {
-        super(labels);
+    private final String averageLabel;
+
+    public LineChart(String key, List<String> labels, String averageLabel) {
+        super(key, labels);
+        this.averageLabel = averageLabel;
     }
 
     public void save(Framework framework, IteratorSource.Iteration iteration, String title, float value) {
@@ -26,5 +29,9 @@ public class LineChart extends Chart<Line> {
     @Override
     public String getType() {
         return "line";
+    }
+
+    public String getAverageLabel() {
+        return averageLabel;
     }
 }

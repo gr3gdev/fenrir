@@ -4,6 +4,8 @@ import lombok.SneakyThrows;
 
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
 /**
@@ -14,7 +16,7 @@ public final class ClassUtils {
     /**
      * Cache for object instantiate with default constructor.
      */
-    private static final Map<Class<?>, Object> instanceCache = new HashMap<>();
+    private static final ConcurrentMap<Class<?>, Object> instanceCache = new ConcurrentHashMap<>();
 
     private ClassUtils() {
         // None

@@ -5,7 +5,7 @@ import java.util.List;
 
 public class Bar implements Dataset {
     private final String label;
-    private List<Integer> data = new ArrayList<>();
+    private List<Double> data = new ArrayList<>();
     private int borderWidth = 1;
 
     public Bar(String label) {
@@ -16,11 +16,11 @@ public class Bar implements Dataset {
         return label;
     }
 
-    public List<Integer> getData() {
+    public List<Double> getData() {
         return data;
     }
 
-    public void setData(List<Integer> data) {
+    public void setData(List<Double> data) {
         this.data = data;
     }
 

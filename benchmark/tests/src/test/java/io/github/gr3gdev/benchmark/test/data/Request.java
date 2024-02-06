@@ -1,6 +1,7 @@
 package io.github.gr3gdev.benchmark.test.data;
 
 import java.util.List;
+import java.util.Objects;
 
 public enum Request {
     CREATE(1, List.of(
@@ -52,7 +53,7 @@ public enum Request {
 
     public record Data(String path, String method, String json) {
         public String name() {
-            return method() + path().replace("/1", "").replace("/", "");
+            return method() + path().replace("/", "");
         }
 
         @Override

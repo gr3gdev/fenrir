@@ -4,11 +4,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Chart<D extends Dataset> {
+    private final String key;
     private final List<String> labels;
     protected List<D> datasets = new ArrayList<>();
 
-    protected Chart(List<String> labels) {
+    protected Chart(String key, List<String> labels) {
+        this.key = key;
         this.labels = labels;
+    }
+
+    public String getKey() {
+        return key;
     }
 
     public abstract String getType();

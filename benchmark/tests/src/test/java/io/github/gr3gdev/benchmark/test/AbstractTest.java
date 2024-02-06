@@ -122,9 +122,10 @@ public abstract class AbstractTest {
         }
         try {
             final float startedTime = Float.parseFloat(matcher.group(1));
+            final String key = "startedTimeChart" + iteration.memory();
             ((LineChart) TestSuite.report.getCharts()
-                    .computeIfAbsent("startedTimeChart" + iteration.memory(),
-                            k -> new LineChart(IntStream.range(1, iteration.max() + 1).mapToObj(String::valueOf).toList())))
+                    .computeIfAbsent(key,
+                            k -> new LineChart(key, IntStream.range(1, iteration.max() + 1).mapToObj(String::valueOf).toList(), "Average started time (seconds)")))
                     .save(getFramework(), iteration, "started time", startedTime);
         } catch (IllegalStateException e) {
             throw new RuntimeException("Error with pattern [" + pattern + "]\n" + logs);
