@@ -5,7 +5,7 @@ import io.github.gr3gdev.benchmark.test.QuarkusTest;
 import io.github.gr3gdev.benchmark.test.SpringTest;
 import io.github.gr3gdev.benchmark.test.data.Framework;
 import io.github.gr3gdev.benchmark.test.data.Report;
-import io.github.gr3gdev.benchmark.test.data.Request;
+import io.github.gr3gdev.bench.data.Request;
 import org.junit.platform.suite.api.SelectClasses;
 import org.junit.platform.suite.api.Suite;
 

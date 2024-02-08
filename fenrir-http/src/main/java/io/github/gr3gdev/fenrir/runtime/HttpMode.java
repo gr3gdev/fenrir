@@ -86,9 +86,10 @@ public class HttpMode implements Mode<HttpSocketEvent, HttpResponse> {
         if (plugin == null) {
             throw new RuntimeException("Missing plugin " + route.plugin().getCanonicalName() + " in @FenrirConfiguration");
         }
+        final List<String> listenerRefs = new ArrayList<>();
         return Arrays.stream(routeClass.getMethods())
                 .filter(m -> m.isAnnotationPresent(Listener.class))
-                .map(m -> mapMethodToSocketEvent(route, routeClass, routeInstance, validatorCache, m, plugin, interceptors))
+                .map(m -> mapMethodToSocketEvent(route, routeClass, routeInstance, validatorCache, m, plugin, interceptors, listenerRefs))
                 .collect(Collectors.toSet());
     }
 
@@ -106,9 +107,23 @@ public class HttpMode implements Mode<HttpSocketEvent, HttpResponse> {
                 }));
     }
 
+    private String listenerRef(Listener annotation, Method m) {
+        if (annotation.ref().equals("{methodName}")) {
+            return m.getName();
+        } else {
+            return annotation.ref();
+        }
+    }
+
     private HttpSocketEvent mapMethodToSocketEvent(Route route, Class<?> routeClass, Object routeInstance, Map<Class<?>, RouteValidator> validatorCache,
-                                                   Method m, HttpSocketPlugin<?> plugin, List<Interceptor<?, HttpResponse, ?>> interceptors) {
+                                                   Method m, HttpSocketPlugin<?> plugin, List<Interceptor<?, HttpResponse, ?>> interceptors,
+                                                   List<String> listenerRefs) {
         final Listener listenerAnnotation = m.getAnnotation(Listener.class);
+        final String ref = listenerRef(listenerAnnotation, m);
+        if (listenerRefs.contains(ref)) {
+            throw new RuntimeException("Listener ref must be unique in the same Route : " + routeClass.getCanonicalName() + "#" + m.getName());
+        }
+        listenerRefs.add(ref);
         initValidators(listenerAnnotation.validators(), validatorCache);
         final List<RouteValidator> validators = validatorCache.entrySet().stream()
                 .filter(entry -> Stream.concat(

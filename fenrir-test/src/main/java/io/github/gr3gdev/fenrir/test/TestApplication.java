@@ -34,6 +34,25 @@ public class TestApplication {
      */
     void stop() {
         this.testData.status.set(false);
+        this.client.close();
+    }
+
+    /**
+     * Return the port.
+     *
+     * @return integer
+     */
+    public int port() {
+        return testData.getPort();
+    }
+
+    /**
+     * Return the HTTP client.
+     *
+     * @return HttpClient
+     */
+    public HttpClient client() {
+        return client;
     }
 
     @SuppressWarnings("BusyWait")

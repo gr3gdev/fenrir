@@ -3,6 +3,8 @@ package io.github.gr3gdev.fenrir.properties;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * The FenrirProperties class represents a persistent set of properties.
@@ -20,7 +22,7 @@ public class FenrirProperties extends Properties {
                 final String[] values = placeholder.split(":");
                 final String defaultValue;
                 if (values.length > 1) {
-                    defaultValue = values[1];
+                    defaultValue = placeholder.substring(placeholder.indexOf(":") + 1);
                 } else {
                     defaultValue = "";
                 }

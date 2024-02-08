@@ -1,7 +1,6 @@
-package io.github.gr3gdev.benchmark.test.data;
+package io.github.gr3gdev.bench.data;
 
 import java.util.List;
-import java.util.Objects;
 
 public enum Request {
     CREATE(1, List.of(

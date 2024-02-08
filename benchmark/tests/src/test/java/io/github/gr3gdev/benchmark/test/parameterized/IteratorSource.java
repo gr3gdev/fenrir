@@ -1,5 +1,6 @@
 package io.github.gr3gdev.benchmark.test.parameterized;
 
+import io.github.gr3gdev.bench.Iteration;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.provider.AnnotationBasedArgumentsProvider;
 import org.junit.jupiter.params.provider.Arguments;
@@ -27,14 +28,6 @@ public @interface IteratorSource {
         int count();
 
         long memory();
-    }
-
-    record Iteration(int index, int max, long memory) {
-        @Override
-        public String toString() {
-            final int increment = index + 1;
-            return increment + ", memory=" + memory + "MB";
-        }
     }
 
     class IteratorArgumentsProvider extends AnnotationBasedArgumentsProvider<IteratorSource> {

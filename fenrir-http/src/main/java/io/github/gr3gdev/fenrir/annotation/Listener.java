@@ -16,6 +16,13 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Listener {
     /**
+     * Listener's reference, must be unique in the same {@link Route}.
+     *
+     * @return String
+     */
+    String ref() default "{methodName}";
+
+    /**
      * The response code HTTP, 200 by default.
      *
      * @return HttpStatus

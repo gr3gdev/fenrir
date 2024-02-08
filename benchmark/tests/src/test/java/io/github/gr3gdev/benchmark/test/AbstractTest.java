@@ -1,11 +1,12 @@
 package io.github.gr3gdev.benchmark.test;
 
+import io.github.gr3gdev.bench.BenchTest;
+import io.github.gr3gdev.bench.Iteration;
+import io.github.gr3gdev.bench.data.Request;
 import io.github.gr3gdev.benchmark.TestSuite;
 import io.github.gr3gdev.benchmark.test.data.Framework;
-import io.github.gr3gdev.benchmark.test.data.Request;
 import io.github.gr3gdev.benchmark.test.data.chart.LineChart;
 import io.github.gr3gdev.benchmark.test.parameterized.IteratorSource;
-import io.github.gr3gdev.benchmark.test.utils.RequestUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -99,7 +100,7 @@ public abstract class AbstractTest {
 
     protected abstract Framework getFramework();
 
-    private void measureStartedTime(IteratorSource.Iteration iteration) {
+    private void measureStartedTime(Iteration iteration) {
         final String service = getFramework().getService();
         final Pattern pattern = getFramework().getStartedPattern();
         String logs = logService.toString(StandardCharsets.UTF_8);
@@ -132,7 +133,7 @@ public abstract class AbstractTest {
         }
     }
 
-    public void start(IteratorSource.Iteration iteration) {
+    public void start(Iteration iteration) {
         this.logService = new ToStringConsumer();
         this.service = new FrameworkContainer(getFramework(), iteration.memory())
                 .withLogConsumer(logService)
@@ -151,19 +152,36 @@ public abstract class AbstractTest {
         service.stop();
     }
 
+    private void sleep() {
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @ParameterizedTest(name = "{displayName} {arguments}")
     @IteratorSource({
             @IteratorSource.IterationConf(count = 10, memory = 256L),
             @IteratorSource.IterationConf(count = 10, memory = 512L)
     })
     @DisplayName("Execute benchmark")
-    void benchmark(IteratorSource.Iteration iteration) {
+    void benchmark(Iteration iteration) {
         start(iteration);
         final Framework framework = getFramework();
         final int exposePort = service.getMappedPort(getFramework().getPort());
         Arrays.stream(Request.values())
                 .sorted(Comparator.comparing(Request::getOrder))
                 .map(Request::getData)
-                .forEach(d -> d.forEach(req -> RequestUtils.executeRequest(iteration, req, framework, exposePort)));
+                .forEach(d -> d.forEach(req -> BenchTest.execute(TestSuite.client, req, exposePort,
+                        (httpResponse, time) -> {
+                            TestSuite.responses.get(framework).put(req, httpResponse);
+                            final String key = "requestTimeChart" + req.name() + iteration.memory();
+                            ((LineChart) TestSuite.report.getCharts()
+                                    .computeIfAbsent(key,
+                                            k -> new LineChart(key, IntStream.range(1, iteration.max() + 1).mapToObj(String::valueOf).toList(), "Average request time (ms)")))
+                                    .save(framework, iteration, req.toString(), time);
+                            sleep();
+                        })));
     }
 }

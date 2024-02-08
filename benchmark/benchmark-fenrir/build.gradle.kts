@@ -16,12 +16,21 @@ dependencies {
     runtimeOnly(libs.postgresql)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
+    testRuntimeOnly(libs.postgresql)
+    testImplementation(libs.testcontainers.postgresql)
+    testImplementation(libs.fenrir.test)
+    testImplementation(project(":bench"))
+    testImplementation("org.junit.platform:junit-platform-launcher")
 }
 
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
     }
+}
+
+tasks.named<Test>("test") {
+    useJUnitPlatform()
 }
 
 fenrir {

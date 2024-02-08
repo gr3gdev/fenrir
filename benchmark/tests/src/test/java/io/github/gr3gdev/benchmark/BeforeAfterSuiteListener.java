@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.gr3gdev.benchmark.test.data.Framework;
 import io.github.gr3gdev.benchmark.test.data.Report;
-import io.github.gr3gdev.benchmark.test.data.Request;
+import io.github.gr3gdev.bench.data.Request;
 import io.github.gr3gdev.benchmark.test.data.chart.Bar;
 import io.github.gr3gdev.benchmark.test.data.chart.BarChart;
 import io.github.gr3gdev.benchmark.test.data.chart.LineChart;

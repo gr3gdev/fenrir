@@ -1,5 +1,6 @@
 package io.github.gr3gdev.benchmark.test.data.chart;
 
+import io.github.gr3gdev.bench.Iteration;
 import io.github.gr3gdev.benchmark.test.data.Framework;
 import io.github.gr3gdev.benchmark.test.parameterized.IteratorSource;
 
@@ -13,7 +14,7 @@ public class LineChart extends Chart<Line> {
         this.averageLabel = averageLabel;
     }
 
-    public void save(Framework framework, IteratorSource.Iteration iteration, String title, float value) {
+    public void save(Framework framework, Iteration iteration, String title, float value) {
         final int index = iteration.index();
         final Line line = datasets.stream()
                 .filter(l -> l.getLabel().equals(framework.getName() + " - " + title))

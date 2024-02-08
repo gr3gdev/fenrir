@@ -29,8 +29,8 @@ class FenrirPersistenceUnitInfo implements PersistenceUnitInfo {
     private List<ClassTransformer> transformers = new ArrayList<>();
     private List<URL> jarFileUrls;
     private URL persistenceUnitRootUrl;
-    private SharedCacheMode sharedCacheMode;
-    private ValidationMode validationMode;
+    private SharedCacheMode sharedCacheMode = SharedCacheMode.ENABLE_SELECTIVE;
+    private ValidationMode validationMode = ValidationMode.AUTO;
     private String persistenceXMLSchemaVersion;
     private ClassLoader classLoader;
     private ClassLoader newTempClassLoader;

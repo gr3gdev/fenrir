@@ -13,6 +13,7 @@ dependencies {
     testImplementation(libs.testcontainers)
     testImplementation(libs.testcontainers.postgresql)
     testImplementation(libs.postgresql)
+    testImplementation(project(":bench"))
     testImplementation("org.junit.platform:junit-platform-launcher")
 }
 

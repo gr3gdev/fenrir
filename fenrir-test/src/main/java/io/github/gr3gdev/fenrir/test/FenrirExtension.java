@@ -5,6 +5,8 @@ import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.TestInstancePostProcessor;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,6 +43,19 @@ public class FenrirExtension implements TestInstancePostProcessor, BeforeAllCall
     @Override
     public void beforeAll(ExtensionContext extensionContext) {
         final Class<?> testClass = extensionContext.getRequiredTestClass();
+        Arrays.stream(testClass.getDeclaredMethods())
+                .filter(m -> m.isAnnotationPresent(BeforeApp.class))
+                .forEach(m -> {
+                    try {
+                        if (Modifier.isStatic(m.getModifiers())) {
+                            m.invoke(null);
+                        } else {
+                            throw new RuntimeException("The method annotated with @beforeApp must be static : " + m.getName());
+                        }
+                    } catch (IllegalAccessException | InvocationTargetException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
         Arrays.stream(testClass.getDeclaredFields())
                 .filter(f -> f.isAnnotationPresent(App.class))
                 .forEach(f -> {
