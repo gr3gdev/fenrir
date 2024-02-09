@@ -49,6 +49,7 @@ public abstract class AbstractTest {
             this.withInitScript("create_database.sql");
             this.withNetwork(NETWORK);
             this.withNetworkAliases("database");
+            this.waitingFor(Wait.forLogMessage(".*database system is ready to accept connections.*", 2));
         }
     }
 

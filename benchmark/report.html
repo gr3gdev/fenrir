@@ -59,8 +59,13 @@
             justify-content: center;
             display: flex;
         }
-        .compare, .compare div {
-            display: flex;
+        .compare {
+            display: grid;
+            grid-template-columns: repeat(2, auto);
+            justify-items: center;
+        }
+        .compare img {
+            max-height: 4rem;
         }
     </style>
 </head>
@@ -69,9 +74,12 @@
     <h1>Report</h1>
     <p>Compare frameworks :</p>
     <div class="compare">
-        <div><img src="tests/spring.png" alt="Logo Spring" title="Spring framework"><span id="scoreSpring" class="score"></span></div>
-        <div><img src="tests/quarkus.png" alt="Logo Quarkus" title="Quarkus"><span id="scoreQuarkus" class="score"></span></div>
-        <div><img src="tests/fenrir.png" alt="Logo Fenrir" title="Fenrir"><span id="scoreFenrir" class="score"></span></div>
+        <img src="tests/spring.png" alt="Logo Spring" title="Spring framework">
+        <span id="scoreSpring" class="score"></span>
+        <img src="tests/quarkus.png" alt="Logo Quarkus" title="Quarkus">
+        <span id="scoreQuarkus" class="score"></span>
+        <img src="tests/fenrir.png" alt="Logo Fenrir" title="Fenrir">
+        <span id="scoreFenrir" class="score"></span>
     </div>
 </div>
 <div class="charts"></div>
