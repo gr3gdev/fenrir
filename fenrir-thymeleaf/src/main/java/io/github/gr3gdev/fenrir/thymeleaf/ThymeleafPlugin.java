@@ -18,6 +18,7 @@ public class ThymeleafPlugin extends HttpSocketPlugin<ThymeleafResponse> {
      * Default constructor.
      */
     public ThymeleafPlugin() {
+        super();
         final ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver(
                 Thread.currentThread().getContextClassLoader());
         templateResolver.setTemplateMode(TemplateMode.HTML);

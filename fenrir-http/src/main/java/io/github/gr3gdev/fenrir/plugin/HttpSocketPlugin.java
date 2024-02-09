@@ -4,6 +4,7 @@ import io.github.gr3gdev.fenrir.http.HttpRequest;
 import io.github.gr3gdev.fenrir.http.HttpResponse;
 import io.github.gr3gdev.fenrir.http.HttpStatus;
 import io.github.gr3gdev.fenrir.runtime.HttpMode;
+import io.github.gr3gdev.fenrir.validator.ContentTypeValidator;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +18,14 @@ import java.util.Map;
  */
 public abstract class HttpSocketPlugin<T> extends SocketPlugin<T, HttpRequest, HttpResponse> {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpSocketPlugin.class);
+
+    /**
+     * Constructor.
+     */
+    public HttpSocketPlugin() {
+        // Add the default validator for this plugin
+        addValidator(new ContentTypeValidator());
+    }
 
     /**
      * {@inheritDoc}

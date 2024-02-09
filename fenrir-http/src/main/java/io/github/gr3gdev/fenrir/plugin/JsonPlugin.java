@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.github.gr3gdev.fenrir.http.HttpRequest;
-import io.github.gr3gdev.fenrir.validator.JsonValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,11 +20,10 @@ public class JsonPlugin extends HttpSocketPlugin<Object> {
      * Constructor.
      */
     public JsonPlugin() {
+        super();
         mapper = new ObjectMapper();
         mapper.registerModule(new Jdk8Module());
         mapper.registerModule(new JavaTimeModule());
-        // Add the default validator for this plugin
-        addValidator(new JsonValidator());
     }
 
     /**

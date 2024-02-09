@@ -9,9 +9,9 @@ import io.github.gr3gdev.fenrir.runtime.HttpMode;
 import java.util.Map;
 
 /**
- * Validator for {@link JsonPlugin}.
+ * Validator for Content-type.
  */
-public class JsonValidator implements PluginValidator<Body> {
+public class ContentTypeValidator implements PluginValidator<Body> {
 
     /**
      * {@inheritDoc}
@@ -31,6 +31,6 @@ public class JsonValidator implements PluginValidator<Body> {
         if (annotation.contentType().equalsIgnoreCase(requestContentType)) {
             return;
         }
-        throw new JsonValidatorException((String) properties.getOrDefault(HttpMode.CONTENT_TYPE, "application/json"));
+        throw new ContentTypeValidatorException((String) properties.get(HttpMode.CONTENT_TYPE));
     }
 }
