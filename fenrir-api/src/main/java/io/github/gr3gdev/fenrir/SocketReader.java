@@ -14,7 +14,6 @@ import java.util.Set;
  */
 @RequiredArgsConstructor
 public abstract class SocketReader implements Runnable {
-
     private final Socket socket;
     private final Set<SocketEvent> socketEvents;
 

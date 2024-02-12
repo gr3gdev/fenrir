@@ -25,7 +25,6 @@ import java.util.stream.Stream;
  * HTTP Mode (for example : application server, REST API).
  */
 public class HttpMode implements Mode<HttpSocketEvent, HttpResponse> {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpMode.class);
 
     /**

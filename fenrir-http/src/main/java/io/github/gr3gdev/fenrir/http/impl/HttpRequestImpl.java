@@ -35,7 +35,7 @@ public class HttpRequestImpl implements HttpRequest {
      */
     @SneakyThrows
     public HttpRequestImpl(String remoteAddress, InputStream input) {
-        LOGGER.trace("New request");
+        LOGGER.trace("New HTTP request");
         this.remoteAddress = remoteAddress;
         final BufferedReader reader = new BufferedReader(new InputStreamReader(input));
         final String requestLine = reader.readLine();
