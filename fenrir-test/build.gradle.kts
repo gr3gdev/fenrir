@@ -13,7 +13,7 @@ repositories {
 dependencies {
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
-    api(project(":fenrir-http"))
+    api(project(":fenrir-json"))
     api(libs.junit.jupiter)
     testImplementation(libs.slf4j.jdk14)
 }

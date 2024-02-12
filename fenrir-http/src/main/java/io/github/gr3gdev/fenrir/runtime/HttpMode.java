@@ -3,12 +3,9 @@ package io.github.gr3gdev.fenrir.runtime;
 import io.github.gr3gdev.fenrir.SocketReader;
 import io.github.gr3gdev.fenrir.annotation.Listener;
 import io.github.gr3gdev.fenrir.annotation.Route;
-import io.github.gr3gdev.fenrir.http.HttpMethod;
 import io.github.gr3gdev.fenrir.http.HttpResponse;
 import io.github.gr3gdev.fenrir.http.HttpRouteListener;
-import io.github.gr3gdev.fenrir.http.HttpStatus;
 import io.github.gr3gdev.fenrir.interceptor.Interceptor;
-import io.github.gr3gdev.fenrir.plugin.FileLoaderPlugin;
 import io.github.gr3gdev.fenrir.plugin.HttpSocketPlugin;
 import io.github.gr3gdev.fenrir.plugin.Plugin;
 import io.github.gr3gdev.fenrir.reflect.ClassUtils;
@@ -47,22 +44,11 @@ public class HttpMode implements Mode<HttpSocketEvent, HttpResponse> {
     public Set<HttpSocketEvent> init(Class<?> mainClass, Map<Class<?>, Plugin> plugins, Properties fenrirProperties,
                                      List<Interceptor<?, HttpResponse, ?>> interceptors) {
         LOGGER.trace("Init HTTP runtime mode");
-        final FileLoaderPlugin fileLoaderPlugin = new FileLoaderPlugin();
-        plugins.put(FileLoaderPlugin.class, fileLoaderPlugin);
         final Map<Class<?>, Object> routes = parseAndInitRoutes(mainClass);
-        final Set<HttpSocketEvent> socketEvents = new HashSet<>();
-        final HttpResponse favicon = fileLoaderPlugin.process("/favicon.ico", Map.of(
-                RESPONSE_CODE, HttpStatus.OK,
-                CONTENT_TYPE, "image/vnd.microsoft.icon"
-        ));
         final Map<Class<?>, RouteValidator> validatorCache = new HashMap<>();
-        socketEvents.add(new HttpSocketEvent(
-                "/favicon.ico", HttpMethod.GET, new HttpRouteListener((req) -> favicon)));
-        socketEvents.addAll(routes.entrySet().parallelStream()
+        return routes.entrySet().parallelStream()
                 .map(entry -> findSocketEvents(plugins, entry.getKey(), entry.getValue(), validatorCache, interceptors))
-                .flatMap(Collection::stream)
-                .collect(Collectors.toSet()));
-        return socketEvents;
+                .flatMap(Collection::stream).collect(Collectors.toSet());
     }
 
     private Map<Class<?>, Object> parseAndInitRoutes(Class<?> mainClass) {

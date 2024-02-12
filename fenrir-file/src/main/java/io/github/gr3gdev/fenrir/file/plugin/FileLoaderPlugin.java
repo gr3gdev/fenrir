@@ -1,6 +1,7 @@
-package io.github.gr3gdev.fenrir.plugin;
+package io.github.gr3gdev.fenrir.file.plugin;
 
 import io.github.gr3gdev.fenrir.http.HttpStatus;
+import io.github.gr3gdev.fenrir.plugin.HttpSocketPlugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

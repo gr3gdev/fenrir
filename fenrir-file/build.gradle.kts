@@ -13,13 +13,7 @@ repositories {
 dependencies {
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
-    api(project(":fenrir-json"))
-}
-
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
-    }
+    api(project(":fenrir-http"))
 }
 
 publishing {
@@ -33,6 +27,8 @@ publishing {
     }
 }
 
-tasks.named<Test>("test") {
-    useJUnitPlatform()
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
 }

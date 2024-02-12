@@ -3,7 +3,6 @@ package io.github.gr3gdev.fenrir.validator;
 import io.github.gr3gdev.fenrir.Request;
 import io.github.gr3gdev.fenrir.annotation.Body;
 import io.github.gr3gdev.fenrir.http.HttpRequest;
-import io.github.gr3gdev.fenrir.plugin.JsonPlugin;
 import io.github.gr3gdev.fenrir.runtime.HttpMode;
 
 import java.util.Map;

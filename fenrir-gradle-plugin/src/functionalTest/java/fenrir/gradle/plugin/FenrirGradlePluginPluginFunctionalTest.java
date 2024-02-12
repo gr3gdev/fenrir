@@ -58,6 +58,7 @@ class FenrirGradlePluginPluginFunctionalTest {
                 dependencies {
                     implementation files('%1$s/fenrir-api/build/libs/fenrir-api-0.1.0.jar')
                     implementation files('%1$s/fenrir-http/build/libs/fenrir-http-0.1.0.jar')
+                    implementation files('%1$s/fenrir-file/build/libs/fenrir-file-0.1.0.jar')
                     implementation 'org.slf4j:slf4j-jdk14:2.0.11'
                 }
 
@@ -115,7 +116,7 @@ class FenrirGradlePluginPluginFunctionalTest {
 
                 import io.github.gr3gdev.fenrir.annotation.Listener;
                 import io.github.gr3gdev.fenrir.annotation.Route;
-                import io.github.gr3gdev.fenrir.plugin.FileLoaderPlugin;
+                import io.github.gr3gdev.fenrir.file.plugin.FileLoaderPlugin;
 
                 @Route(plugin = FileLoaderPlugin.class)
                 public class TestRoute {
