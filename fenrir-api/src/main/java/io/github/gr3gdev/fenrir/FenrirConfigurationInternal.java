@@ -1,6 +1,5 @@
 package io.github.gr3gdev.fenrir;
 
-import io.github.gr3gdev.fenrir.event.SocketEvent;
 import io.github.gr3gdev.fenrir.interceptor.Interceptor;
 import io.github.gr3gdev.fenrir.plugin.Plugin;
 import io.github.gr3gdev.fenrir.runtime.Mode;
@@ -16,7 +15,7 @@ import java.util.List;
 @Getter
 class FenrirConfigurationInternal {
     private final List<Class<? extends Plugin>> plugins;
-    private final List<Class<? extends Mode<? extends SocketEvent, ? extends Response>>> modes;
+    private final List<Class<? extends Mode<? extends RouteListener, ? extends ErrorListener, ? extends Request, ? extends Response>>> modes;
     private final List<Class<? extends Interceptor<?, ? extends Response, ? extends Plugin>>> interceptors;
 
     public FenrirConfigurationInternal(FenrirConfiguration annotation) {

@@ -124,7 +124,7 @@ public abstract class AbstractTest {
         }
         try {
             final float startedTime = Float.parseFloat(matcher.group(1));
-            final String key = "startedTimeChart" + iteration.memory();
+            final String key = "startedTimeChart";
             ((LineChart) TestSuite.report.getCharts()
                     .computeIfAbsent(key,
                             k -> new LineChart(key, IntStream.range(1, iteration.max() + 1).mapToObj(String::valueOf).toList(), "Average started time (seconds)")))
@@ -141,7 +141,7 @@ public abstract class AbstractTest {
                 .withEnv("DATABASE_URL", "jdbc:postgresql://database:5432/benchmark");
         try {
             service.start();
-        } catch (ContainerLaunchException exc) {
+        } catch (Exception exc) {
             System.out.println(logService.toString(StandardCharsets.UTF_8));
             throw exc;
         }
@@ -164,7 +164,8 @@ public abstract class AbstractTest {
     @ParameterizedTest(name = "{displayName} {arguments}")
     @IteratorSource({
             @IteratorSource.IterationConf(count = 10, memory = 256L),
-            @IteratorSource.IterationConf(count = 10, memory = 512L)
+            @IteratorSource.IterationConf(count = 10, memory = 512L),
+            @IteratorSource.IterationConf(count = 10, memory = 1000L)
     })
     @DisplayName("Execute benchmark")
     void benchmark(Iteration iteration) {
@@ -175,13 +176,19 @@ public abstract class AbstractTest {
                 .sorted(Comparator.comparing(Request::getOrder))
                 .map(Request::getData)
                 .forEach(d -> d.forEach(req -> BenchTest.execute(TestSuite.client, req, exposePort,
-                        (httpResponse, time) -> {
+                        (httpResponse, time, error) -> {
+                            Long res = time;
+                            if (error != null) {
+                                System.out.println(logService.toString(StandardCharsets.UTF_8));
+                                error.printStackTrace();
+                                res = -1L;
+                            }
                             TestSuite.responses.get(framework).put(req, httpResponse);
-                            final String key = "requestTimeChart" + req.name() + iteration.memory();
+                            final String key = "requestTimeChart" + req.name();
                             ((LineChart) TestSuite.report.getCharts()
                                     .computeIfAbsent(key,
                                             k -> new LineChart(key, IntStream.range(1, iteration.max() + 1).mapToObj(String::valueOf).toList(), "Average request time (ms)")))
-                                    .save(framework, iteration, req.toString(), time);
+                                    .save(framework, iteration, req.toString(), res);
                             sleep();
                         })));
     }

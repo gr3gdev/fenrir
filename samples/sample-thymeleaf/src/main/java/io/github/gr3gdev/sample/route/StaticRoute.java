@@ -3,7 +3,7 @@ package io.github.gr3gdev.sample.route;
 import io.github.gr3gdev.fenrir.annotation.Listener;
 import io.github.gr3gdev.fenrir.annotation.Param;
 import io.github.gr3gdev.fenrir.annotation.Route;
-import io.github.gr3gdev.fenrir.plugin.FileLoaderPlugin;
+import io.github.gr3gdev.fenrir.file.plugin.FileLoaderPlugin;
 
 @Route(plugin = FileLoaderPlugin.class)
 public class StaticRoute {

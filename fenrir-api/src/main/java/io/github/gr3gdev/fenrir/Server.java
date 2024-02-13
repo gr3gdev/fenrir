@@ -1,19 +1,25 @@
 package io.github.gr3gdev.fenrir;
 
-import io.github.gr3gdev.fenrir.event.SocketEvent;
 import io.github.gr3gdev.fenrir.event.StartupEvent;
+import io.github.gr3gdev.fenrir.runtime.Mode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
@@ -27,8 +33,8 @@ final class Server {
     private final AtomicBoolean active = new AtomicBoolean(false);
     private final ServerSocket serverSocket;
 
-    private Set<? extends SocketEvent> socketEvents = new HashSet<>();
-    private Class<? extends SocketReader> socketReaderClass;
+    private final ConcurrentMap<Mode<? extends RouteListener, ? extends ErrorListener, ? extends Request, ? extends Response>,
+            Listeners<? extends Request, ? extends RouteListener, ? extends ErrorListener>> modes = new ConcurrentHashMap<>();
 
     Server(int port) {
         try {
@@ -56,12 +62,41 @@ final class Server {
             this.active.set(true);
             while (active.get()) {
                 if (!serverSocket.isClosed()) {
+                    final Socket socket = serverSocket.accept();
+                    final SocketAddress remoteAddress = socket.getRemoteSocketAddress();
+                    final InputStream inputstream = socket.getInputStream();
+                    final OutputStream outputstream = socket.getOutputStream();
                     try {
-                        Thread.ofPlatform().name("Fenrir.Server SocketReader")
-                                .start(socketReaderClass.getDeclaredConstructor(Socket.class, Set.class)
-                                        .newInstance(serverSocket.accept(), socketEvents));
-                    } catch (IOException | InstantiationException | IllegalAccessException | IllegalArgumentException
-                             | InvocationTargetException | NoSuchMethodException | SecurityException exc) {
+                        final BufferedReader reader = new BufferedReader(new InputStreamReader(inputstream));
+                        final String firstLine = reader.readLine();
+                        // Multiple mode support
+                        final Map.Entry<Mode<? extends RouteListener, ? extends ErrorListener, ? extends Request, ? extends Response>,
+                                Listeners<? extends Request, ? extends RouteListener, ? extends ErrorListener>> entry = modes.entrySet().stream()
+                                .filter(e -> e.getKey().accept(firstLine))
+                                .findFirst()
+                                .orElseThrow();
+                        // If the mode accept the request
+                        final Mode<? extends RouteListener, ? extends ErrorListener, ? extends Request, ? extends Response> mode = entry.getKey();
+                        final Class<? extends SocketReader> socketReaderClass = mode.getSocketReaderClass();
+                        final Listeners<? extends Request, ? extends RouteListener, ? extends ErrorListener> listeners = entry.getValue();
+                        try {
+                            // Find and execute the listener
+                            final SocketReader socketReader = socketReaderClass.getDeclaredConstructor(String.class, BufferedReader.class, OutputStream.class,
+                                            SocketAddress.class, ConcurrentMap.class, ErrorListener.class)
+                                    .newInstance(firstLine, reader, outputstream, remoteAddress,
+                                            listeners.listeners(), listeners.errorListener());
+                            socketReader.setCompleteAction(() -> {
+                                outputstream.flush();
+                                inputstream.close();
+                                outputstream.close();
+                            });
+                            Thread.ofPlatform().name("Fenrir.Server " + socketReaderClass.getSimpleName())
+                                    .start(socketReader);
+                        } catch (InstantiationException | IllegalAccessException |
+                                 InvocationTargetException | NoSuchMethodException e) {
+                            throw new RuntimeException(e);
+                        }
+                    } catch (IOException | IllegalArgumentException | SecurityException exc) {
                         if (active.get() && !(exc instanceof SocketException)) {
                             LOGGER.error("Server socket error", exc);
                         }
@@ -72,14 +107,14 @@ final class Server {
             this.serverSocket.close();
             LOGGER.info("Server stopped");
 
-            this.socketEvents.clear();
+            this.modes.clear();
         } catch (IOException exc) {
             LOGGER.error("Initialization error", exc);
         }
     }
 
-    void addEvents(Set<? extends SocketEvent> socketEvents, Class<? extends SocketReader> socketReaderClass) {
-        this.socketEvents = socketEvents;
-        this.socketReaderClass = socketReaderClass;
+    void addListeners(Mode<? extends RouteListener, ? extends ErrorListener, ? extends Response, ? extends Request> mode,
+                      Listeners<? extends Request, ? extends RouteListener, ? extends ErrorListener> listeners) {
+        this.modes.put(mode, listeners);
     }
 }

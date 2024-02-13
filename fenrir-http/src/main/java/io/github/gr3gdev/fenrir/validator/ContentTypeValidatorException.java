@@ -8,6 +8,6 @@ import io.github.gr3gdev.fenrir.http.HttpStatus;
  */
 public class ContentTypeValidatorException extends ValidatorException {
     public ContentTypeValidatorException(String contentType) {
-        super(HttpResponse.of(HttpStatus.UNSUPPORTED_MEDIA_TYPE).content("", contentType));
+        super(HttpResponse.of(HttpStatus.UNSUPPORTED_MEDIA_TYPE).content(new byte[0], contentType));
     }
 }

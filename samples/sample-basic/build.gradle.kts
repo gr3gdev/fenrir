@@ -8,7 +8,7 @@ repositories {
 }
 
 dependencies {
-    implementation(libs.fenrir.http)
+    implementation(libs.fenrir.file)
     implementation(libs.slf4j.jdk14)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)

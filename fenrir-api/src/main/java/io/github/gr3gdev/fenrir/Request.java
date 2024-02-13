@@ -6,7 +6,6 @@ import java.util.Optional;
  * Interface for request receive by the server.
  */
 public interface Request {
-
     /**
      * Get the request parameter value.
      *
@@ -14,5 +13,4 @@ public interface Request {
      * @return parameter value
      */
     Optional<String> param(String key);
-
 }

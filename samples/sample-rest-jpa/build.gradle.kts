@@ -8,7 +8,7 @@ repositories {
 }
 
 dependencies {
-    implementation(libs.fenrir.http)
+    implementation(libs.fenrir.json)
     implementation(libs.fenrir.jpa)
     implementation(libs.slf4j.jdk14)
     runtimeOnly(libs.h2)

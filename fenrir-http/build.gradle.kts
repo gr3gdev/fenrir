@@ -13,9 +13,6 @@ repositories {
 dependencies {
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
-    api(libs.jackson.databind)
-    api(libs.jackson.jdk8)
-    api(libs.jackson.jsr310)
     api(project(":fenrir-api"))
     testImplementation(libs.junit.jupiter)
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

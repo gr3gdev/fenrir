@@ -8,13 +8,8 @@ services:
       POSTGRES_DB: benchmark
       POSTGRES_USER: bench_user
       POSTGRES_PASSWORD: bench_pass
-    healthcheck:
-      interval: 1s
-      timeout: 5s
-      retries: 3
-      test: ["CMD-SHELL", "pg_isready"]
     volumes:
-      - ./domain/create_database.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./tests/src/test/resources/create_database.sql:/docker-entrypoint-initdb.d/init.sql
 
   benchmark-spring:
     image: gr3gdev/benchmark-spring

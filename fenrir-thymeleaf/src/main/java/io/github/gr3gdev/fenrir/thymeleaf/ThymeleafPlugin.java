@@ -7,6 +7,8 @@ import org.thymeleaf.messageresolver.StandardMessageResolver;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
+import java.nio.charset.StandardCharsets;
+
 /**
  * Implementation of {@link HttpSocketPlugin}, execute {@link TemplateEngine} for thymeleaf rendering.
  */
@@ -42,8 +44,9 @@ public class ThymeleafPlugin extends HttpSocketPlugin<ThymeleafResponse> {
      * {@inheritDoc}
      */
     @Override
-    protected String toString(ThymeleafResponse methodReturn) {
+    protected byte[] toBytes(ThymeleafResponse methodReturn) {
         return templateEngine.process(methodReturn.page(),
-                new JServerContext(methodReturn));
+                        new JServerContext(methodReturn))
+                .getBytes(StandardCharsets.UTF_8);
     }
 }

@@ -1,31 +1,37 @@
 package io.github.gr3gdev.fenrir.socket;
 
+import io.github.gr3gdev.fenrir.ErrorListener;
 import io.github.gr3gdev.fenrir.Request;
+import io.github.gr3gdev.fenrir.RouteListener;
 import io.github.gr3gdev.fenrir.SocketReader;
-import io.github.gr3gdev.fenrir.event.SocketEvent;
 import io.github.gr3gdev.fenrir.http.impl.HttpRequestImpl;
 
-import java.io.InputStream;
-import java.net.Socket;
-import java.util.Set;
+import java.io.BufferedReader;
+import java.io.OutputStream;
+import java.net.SocketAddress;
+import java.util.concurrent.ConcurrentMap;
 
 public class HttpSocketReader extends SocketReader {
     /**
      * Constructor.
      *
-     * @param socket       the server socket
-     * @param socketEvents the socket events
+     * @param firstLine      the first line of the input stream
+     * @param bufferedReader the buffered reader of the socket input stream
+     * @param outputStream   the socket output stream
+     * @param remoteAddress  the remote address
+     * @param listeners      the listeners to execute
+     * @param errorListener  the error listener
      */
-    public HttpSocketReader(Socket socket, Set<SocketEvent> socketEvents) {
-        super(socket, socketEvents);
+    public HttpSocketReader(String firstLine, BufferedReader bufferedReader, OutputStream outputStream, SocketAddress remoteAddress, ConcurrentMap<Request, RouteListener> listeners, ErrorListener errorListener) {
+        super(firstLine, bufferedReader, outputStream, remoteAddress, listeners, errorListener);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected Request newRequest(String remoteAddress, InputStream input) {
-        return new HttpRequestImpl(remoteAddress, input);
+    protected Request newRequest(String firstLine, String remoteAddress, BufferedReader bufferedReader) {
+        return new HttpRequestImpl(firstLine, remoteAddress, bufferedReader);
     }
 
 }

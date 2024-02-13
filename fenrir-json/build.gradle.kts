@@ -14,6 +14,9 @@ dependencies {
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
     api(project(":fenrir-http"))
+    api(libs.jackson.databind)
+    api(libs.jackson.jdk8)
+    api(libs.jackson.jsr310)
 }
 
 publishing {

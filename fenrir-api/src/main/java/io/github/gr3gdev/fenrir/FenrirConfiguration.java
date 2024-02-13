@@ -1,6 +1,5 @@
 package io.github.gr3gdev.fenrir;
 
-import io.github.gr3gdev.fenrir.event.SocketEvent;
 import io.github.gr3gdev.fenrir.interceptor.Interceptor;
 import io.github.gr3gdev.fenrir.plugin.Plugin;
 import io.github.gr3gdev.fenrir.runtime.Mode;
@@ -24,11 +23,11 @@ public @interface FenrirConfiguration {
     Class<? extends Plugin>[] plugins() default {};
 
     /**
-     * The modes used for resolve {@link SocketEvent}.
+     * The modes used for resolve {@link RouteListener}.
      *
      * @return Class
      */
-    Class<? extends Mode<? extends SocketEvent, ? extends Response>>[] modes();
+    Class<? extends Mode<? extends RouteListener, ? extends ErrorListener, ? extends Request, ? extends Response>>[] modes();
 
     /**
      * List of classes with a {@link FenrirConfiguration} annotation. For example a configuration file in another module.

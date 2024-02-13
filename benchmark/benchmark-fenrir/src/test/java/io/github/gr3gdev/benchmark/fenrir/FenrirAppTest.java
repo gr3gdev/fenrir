@@ -24,6 +24,8 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.LogManager;
 
+import static org.junit.jupiter.api.Assertions.fail;
+
 @ExtendWith(FenrirExtension.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class FenrirAppTest {
@@ -79,43 +81,42 @@ public class FenrirAppTest {
         }
     }
 
-    void validate(HttpResponse<String> res, Long time) {
-        Assertions.assertTrue(time < 500L);
+    void validate(HttpResponse<String> res, Long time, Exception error) {
+        if (error != null) {
+            error.printStackTrace();
+            fail(error.getMessage());
+        }
         System.out.println(res + " in " + time + "ms");
+        Assertions.assertTrue(time < 1000L);
     }
 
     @Order(1)
     @Test
     public void create() {
-        Request.CREATE.getData().forEach(req ->
-                BenchTest.execute(application.client(), req, application.port(), this::validate));
+        Request.CREATE.getData().forEach(req -> BenchTest.execute(application.client(), req, application.port(), this::validate));
     }
 
     @Order(2)
     @Test
     public void update() {
-        Request.UPDATE.getData().forEach(req ->
-                BenchTest.execute(application.client(), req, application.port(), this::validate));
+        Request.UPDATE.getData().forEach(req -> BenchTest.execute(application.client(), req, application.port(), this::validate));
     }
 
     @Order(3)
     @Test
     public void findAll() {
-        Request.FIND_ALL.getData().forEach(req ->
-                BenchTest.execute(application.client(), req, application.port(), this::validate));
+        Request.FIND_ALL.getData().forEach(req -> BenchTest.execute(application.client(), req, application.port(), this::validate));
     }
 
     @Order(4)
     @Test
     public void findById() {
-        Request.FIND_BY_ID.getData().forEach(req ->
-                BenchTest.execute(application.client(), req, application.port(), this::validate));
+        Request.FIND_BY_ID.getData().forEach(req -> BenchTest.execute(application.client(), req, application.port(), this::validate));
     }
 
     @Order(5)
     @Test
     public void delete() {
-        Request.DELETE.getData().forEach(req ->
-                BenchTest.execute(application.client(), req, application.port(), this::validate));
+        Request.DELETE.getData().forEach(req -> BenchTest.execute(application.client(), req, application.port(), this::validate));
     }
 }

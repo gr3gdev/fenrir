@@ -9,7 +9,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.function.BiConsumer;
 
 public class BenchTest {
 
@@ -17,7 +16,13 @@ public class BenchTest {
         // None
     }
 
-    public static void execute(HttpClient client, Request.Data request, int exposePort, BiConsumer<HttpResponse<String>, Long> onResponse) {
+    @FunctionalInterface
+    public interface OnComplete {
+        void execute(HttpResponse<String> response, Long time, Exception error);
+    }
+
+    public static void execute(HttpClient client, Request.Data request, int exposePort,
+                               OnComplete onResponse) {
         HttpRequest.Builder builder = HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:" + exposePort + request.path()));
         if (request.json() == null) {
@@ -28,14 +33,12 @@ public class BenchTest {
         final HttpRequest httpRequest = builder
                 .header("Content-Type", "application/json")
                 .build();
+        final Instant start = Instant.now();
         try {
-            final Instant start = Instant.now();
             final HttpResponse<String> httpResponse = client.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            final Duration duration = Duration.between(start, Instant.now());
-            final long time = duration.toMillis();
-            onResponse.accept(httpResponse, time);
+            onResponse.execute(httpResponse, Duration.between(start, Instant.now()).toMillis(), null);
         } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
+            onResponse.execute(null, Duration.between(start, Instant.now()).toMillis(), e);
         }
     }
 }

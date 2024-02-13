@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 
 /**
  * Implementation of {@link HttpSocketPlugin}, the method must return a file path (in classpath).
@@ -18,14 +17,14 @@ public class FileLoaderPlugin extends HttpSocketPlugin<String> {
      * {@inheritDoc}
      */
     @Override
-    protected String toString(String methodReturn) throws HttpSocketException {
+    protected byte[] toBytes(String methodReturn) throws HttpSocketException {
         final File file = new File(methodReturn);
         try {
             byte[] content = file.content();
             if (content == null) {
                 throw new HttpSocketException("File not found : " + file.path, HttpStatus.NOT_FOUND);
             }
-            return new String(content, StandardCharsets.UTF_8);
+            return content;
         } catch (IOException exc) {
             throw new RuntimeException(exc);
         }

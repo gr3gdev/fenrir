@@ -35,37 +35,13 @@
             flex-grow: 1;
             width: 100vw;
         }
-        div.warn {
-            color: #FA0;
-            margin: 0.5rem;
-        }
-        div.bad {
-            color: #F00;
-            margin: 0.5rem;
-        }
-        canvas.warn {
-            border: 1px solid #FA0;
-        }
-        canvas.great {
-            border: 1px solid #0F0;
-        }
-        canvas.bad {
-            border: 1px solid #F00;
-        }
-        .score {
-            margin: 0 2rem 0 0.25rem;
-            max-height: 20vh;
-            align-items: center;
-            justify-content: center;
-            display: flex;
-        }
         .compare {
             display: grid;
-            grid-template-columns: repeat(2, auto);
+            grid-template-columns: repeat(3, auto);
             justify-items: center;
         }
         .compare img {
-            max-height: 4rem;
+            max-height: 5rem;
         }
     </style>
 </head>
@@ -75,11 +51,8 @@
     <p>Compare frameworks :</p>
     <div class="compare">
         <img src="tests/spring.png" alt="Logo Spring" title="Spring framework">
-        <span id="scoreSpring" class="score"></span>
         <img src="tests/quarkus.png" alt="Logo Quarkus" title="Quarkus">
-        <span id="scoreQuarkus" class="score"></span>
         <img src="tests/fenrir.png" alt="Logo Fenrir" title="Fenrir">
-        <span id="scoreFenrir" class="score"></span>
     </div>
 </div>
 <div class="charts"></div>

@@ -4,7 +4,7 @@ import io.github.gr3gdev.fenrir.annotation.Body;
 import io.github.gr3gdev.fenrir.annotation.Listener;
 import io.github.gr3gdev.fenrir.annotation.Route;
 import io.github.gr3gdev.fenrir.http.HttpMethod;
-import io.github.gr3gdev.fenrir.plugin.JsonPlugin;
+import io.github.gr3gdev.fenrir.json.plugin.JsonPlugin;
 import io.github.gr3gdev.sample.bean.Animal;
 import io.github.gr3gdev.sample.repository.AnimalRepository;
 import lombok.RequiredArgsConstructor;

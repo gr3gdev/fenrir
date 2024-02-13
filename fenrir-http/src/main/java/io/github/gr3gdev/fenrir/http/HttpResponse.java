@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
-import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -42,12 +41,12 @@ public class HttpResponse implements Response {
     /**
      * Response from text.
      *
-     * @param text        The text
+     * @param content     The content
      * @param contentType The content-type of the text
      * @return Response
      */
-    public HttpResponse content(String text, String contentType) {
-        this.content = text.getBytes(StandardCharsets.UTF_8);
+    public HttpResponse content(byte[] content, String contentType) {
+        this.content = content;
         this.contentType = contentType;
         return this;
     }

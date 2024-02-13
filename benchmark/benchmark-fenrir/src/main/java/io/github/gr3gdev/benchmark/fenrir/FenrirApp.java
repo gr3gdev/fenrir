@@ -12,7 +12,7 @@ import io.github.gr3gdev.fenrir.FenrirApplication;
 import io.github.gr3gdev.fenrir.FenrirConfiguration;
 import io.github.gr3gdev.fenrir.jpa.plugin.JpaConfiguration;
 import io.github.gr3gdev.fenrir.jpa.plugin.JpaPlugin;
-import io.github.gr3gdev.fenrir.plugin.JsonPlugin;
+import io.github.gr3gdev.fenrir.json.plugin.JsonPlugin;
 import io.github.gr3gdev.fenrir.runtime.HttpConfiguration;
 import io.github.gr3gdev.fenrir.runtime.HttpMode;
 

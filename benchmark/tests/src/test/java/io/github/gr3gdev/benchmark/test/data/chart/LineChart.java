@@ -16,11 +16,12 @@ public class LineChart extends Chart<Line> {
 
     public void save(Framework framework, Iteration iteration, String title, float value) {
         final int index = iteration.index();
+        final String fullTitle = framework.getName() + " - " +  title + " (" + iteration.memory() + "MB)";
         final Line line = datasets.stream()
-                .filter(l -> l.getLabel().equals(framework.getName() + " - " + title))
+                .filter(l -> l.getLabel().equals(fullTitle))
                 .findFirst()
                 .orElseGet(() -> {
-                    final Line newLine = new Line(framework.getName() + " - " + title, framework.getColor(), iteration.max());
+                    final Line newLine = new Line(fullTitle, framework.getColor(iteration), iteration.max());
                     datasets.add(newLine);
                     return newLine;
                 });

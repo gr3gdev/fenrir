@@ -1,30 +1,44 @@
 package io.github.gr3gdev.fenrir;
 
-import io.github.gr3gdev.fenrir.event.SocketEvent;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.Socket;
-import java.util.Set;
+import java.net.SocketAddress;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Class used for read a socket {@link InputStream} (Threadable).
  */
 @RequiredArgsConstructor
 public abstract class SocketReader implements Runnable {
-    private final Socket socket;
-    private final Set<SocketEvent> socketEvents;
+    private final String firstLine;
+    private final BufferedReader bufferedReader;
+    private final OutputStream outputStream;
+    private final SocketAddress remoteAddress;
+    private final ConcurrentMap<Request, RouteListener> listeners;
+    private final ErrorListener errorListener;
+    @Setter
+    private Complete completeAction;
+
+    @FunctionalInterface
+    interface Complete {
+        void execute() throws IOException;
+    }
 
     /**
      * Create a new request.
      *
-     * @param remoteAddress the remote address (cf. InetSocketAddress#toString)
-     * @param input         the {@link InputStream} of the socket
+     * @param firstLine      the fist line of the {@link InputStream} of the socket
+     * @param remoteAddress  the remote address (cf. InetSocketAddress#toString)
+     * @param bufferedReader the buffered reader of the {@link InputStream} of the socket
      * @return Request
      */
-    protected abstract Request newRequest(String remoteAddress, InputStream input);
+    protected abstract Request newRequest(String firstLine, String remoteAddress, BufferedReader bufferedReader);
 
     /**
      * {@inheritDoc}
@@ -32,15 +46,19 @@ public abstract class SocketReader implements Runnable {
     @Override
     public void run() {
         // Request
-        try (final InputStream inputStream = socket.getInputStream();
-             final OutputStream outputStream = socket.getOutputStream()) {
-            final Request request = newRequest(socket.getRemoteSocketAddress().toString(), inputStream);
-            // Search event
-            socketEvents.parallelStream()
-                    .filter(e -> e.match(request))
-                    .forEach(e -> e.getRouteListener().handleEvent(request, outputStream));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        final Request request = newRequest(firstLine, remoteAddress.toString(), bufferedReader);
+        // Search event
+        Optional.ofNullable(listeners.get(request))
+                .ifPresentOrElse(
+                        l -> l.handleEvent(request, outputStream),
+                        () -> errorListener.handleEvent(outputStream, "Unable to find a listener for " + request)
+                );
+        if (completeAction != null) {
+            try {
+                completeAction.execute();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }

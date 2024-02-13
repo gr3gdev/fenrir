@@ -6,10 +6,13 @@ import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -17,31 +20,43 @@ import java.util.stream.Stream;
  * HTTP implementation of {@link io.github.gr3gdev.fenrir.Request}.
  */
 public class HttpRequestImpl implements HttpRequest {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpRequestImpl.class);
+    private static final Pattern PATH_PARAMETER_PATTERN = Pattern.compile("\\{.*}");
 
-    private final String remoteAddress;
+    private String remoteAddress;
     private final Map<String, String> headers = new HashMap<>();
     private final Map<String, String> parameters = new HashMap<>();
     private String httpMethod = "";
     private String path = "";
     private String protocol = "";
+    private final Map<Integer, String> potentialParams = new HashMap<>();
 
     /**
      * Constructor.
      *
+     * @param method the HTTP method
+     * @param path   the request path
+     */
+    public HttpRequestImpl(String method, String path) {
+        this.httpMethod = method;
+        this.path = path;
+        loadPotentialParameters();
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param firstLine     the first line of the input stream of the socket
      * @param remoteAddress the remote address
-     * @param input         the input stream of the socket
+     * @param reader        the buffered reader of the input stream of the socket
      */
     @SneakyThrows
-    public HttpRequestImpl(String remoteAddress, InputStream input) {
+    public HttpRequestImpl(String firstLine, String remoteAddress, BufferedReader reader) {
         LOGGER.trace("New HTTP request");
         this.remoteAddress = remoteAddress;
-        final BufferedReader reader = new BufferedReader(new InputStreamReader(input));
-        final String requestLine = reader.readLine();
-        if (requestLine != null) {
-            LOGGER.trace("> {}", requestLine);
-            final StringTokenizer tokens = new StringTokenizer(requestLine);
+        if (firstLine != null) {
+            LOGGER.trace("> {}", firstLine);
+            final StringTokenizer tokens = new StringTokenizer(firstLine);
             // HTTP Method (GET, POST, ...)
             httpMethod = tokens.nextToken();
             if (tokens.hasMoreTokens()) { // Path
@@ -60,6 +75,16 @@ public class HttpRequestImpl implements HttpRequest {
             path = path.substring(0, path.indexOf("?"));
         }
         loadParameters(this, pathParameters, reader);
+        loadPotentialParameters();
+    }
+
+    void loadPotentialParameters() {
+        final String[] params = path.split("/");
+        for (int idx = 0; idx < params.length; idx++) {
+            if (!params[idx].isBlank()) {
+                potentialParams.put(idx, params[idx]);
+            }
+        }
     }
 
     void loadHeaders(HttpRequest request, BufferedReader pReader) throws IOException {
@@ -214,4 +239,63 @@ public class HttpRequestImpl implements HttpRequest {
         return new RemoteAddressImpl(this.remoteAddress);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int hashCode() {
+        return Objects.hash(httpMethod, potentialParams.size());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+        if (object == null || getClass() != object.getClass()) {
+            return false;
+        }
+        final HttpRequestImpl other = (HttpRequestImpl) object;
+        return Objects.equals(httpMethod, other.httpMethod) && matchPath(other);
+    }
+
+    private boolean matchPath(HttpRequestImpl other) {
+        if (potentialParams.size() == other.potentialParams.size()) {
+            return other.potentialParams.entrySet().stream()
+                    .allMatch(e -> {
+                        final int index = e.getKey();
+                        final String key = e.getValue();
+                        if (Objects.equals(potentialParams.get(index), key)) {
+                            return true;
+                        } else {
+                            final Matcher matcher = PATH_PARAMETER_PATTERN.matcher(key);
+                            if (matcher.find()) {
+                                // Add path parameters
+                                final String param = key.substring(matcher.start() + 1, matcher.end() - 1);
+                                LOGGER.trace("Add path parameters : {}", param);
+                                other.parameters.put(param, potentialParams.get(index));
+                                parameters.put(param, potentialParams.get(index));
+                                return true;
+                            }
+                            return false;
+                        }
+                    });
+        }
+        return false;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String toString() {
+        return "HttpRequest{" +
+                "protocol='" + protocol + '\'' +
+                ", httpMethod='" + httpMethod + '\'' +
+                ", path='" + path + '\'' +
+                '}';
+    }
 }

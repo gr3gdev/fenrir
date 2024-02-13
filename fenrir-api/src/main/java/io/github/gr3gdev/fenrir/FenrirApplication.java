@@ -1,6 +1,5 @@
 package io.github.gr3gdev.fenrir;
 
-import io.github.gr3gdev.fenrir.event.SocketEvent;
 import io.github.gr3gdev.fenrir.event.StartupEvent;
 import io.github.gr3gdev.fenrir.interceptor.Interceptor;
 import io.github.gr3gdev.fenrir.plugin.Plugin;
@@ -14,7 +13,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -82,13 +83,15 @@ public final class FenrirApplication {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static void initModes(final FenrirConfigurationInternal configuration, final Class<?> mainClass, final Map<Class<?>, Plugin> plugins, final Server server, final FenrirProperties fenrirProperties, final List<Interceptor> interceptors) {
+    private static void initModes(final FenrirConfigurationInternal configuration, final Class<?> mainClass,
+                                  final Map<Class<?>, Plugin> plugins, final Server server,
+                                  final FenrirProperties fenrirProperties, final List<Interceptor> interceptors) {
         configuration.getModes().parallelStream().forEach(mode -> {
             try {
                 final Mode instance = mode.getDeclaredConstructor().newInstance();
                 LOGGER.trace("Init mode {}", instance.getClass().getCanonicalName());
-                final Set<? extends SocketEvent> socketEvents = instance.init(mainClass, plugins, fenrirProperties, interceptors);
-                server.addEvents(socketEvents, instance.getSocketReaderClass());
+                final Listeners listeners = instance.init(mainClass, plugins, fenrirProperties, interceptors);
+                server.addListeners(instance, listeners);
             } catch (InstantiationException | IllegalAccessException | IllegalArgumentException |
                      InvocationTargetException | NoSuchMethodException | SecurityException e) {
                 throw new RuntimeException("Unable to load runtime mode " + mode.getCanonicalName(), e);

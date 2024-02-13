@@ -46,7 +46,7 @@ public class CustomRoute {
         return custom;
     }
 
-    @Listener(path = "/{name}", responseCode = HttpStatus.NO_CONTENT)
+    @Listener(path = "/{name}", method = HttpMethod.DELETE, responseCode = HttpStatus.NO_CONTENT)
     public void deleteByName(@Param("name") String name) {
         data.removeIf(d -> d.name().equals(name));
     }

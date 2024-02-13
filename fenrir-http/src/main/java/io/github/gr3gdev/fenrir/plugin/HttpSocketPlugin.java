@@ -9,6 +9,7 @@ import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
@@ -39,16 +40,16 @@ public abstract class HttpSocketPlugin<T> extends SocketPlugin<T, HttpRequest, H
      * Convert the method's return to a String value to be written in the response.
      *
      * @param methodReturn the method return
-     * @return String
+     * @return Array of bytes
      * @throws HttpSocketException exception thrown when the conversion is impossible or invalid
      */
-    protected abstract String toString(T methodReturn) throws HttpSocketException;
+    protected abstract byte[] toBytes(T methodReturn) throws HttpSocketException;
 
-    HttpResponse process(T methodReturn, HttpStatus responseCode, String contentType) {
+    protected HttpResponse process(T methodReturn, HttpStatus responseCode, String contentType) {
         try {
-            return HttpResponse.of(responseCode).content(toString(methodReturn), contentType);
+            return HttpResponse.of(responseCode).content(toBytes(methodReturn), contentType);
         } catch (HttpSocketException exc) {
-            return HttpResponse.of(exc.getReturnStatus()).content(exc.getMessage(), contentType);
+            return HttpResponse.of(exc.getReturnStatus()).content(exc.getMessage().getBytes(StandardCharsets.UTF_8), contentType);
         }
     }
 
@@ -59,7 +60,7 @@ public abstract class HttpSocketPlugin<T> extends SocketPlugin<T, HttpRequest, H
     protected HttpResponse processInternalError(Map<String, Object> properties, Exception exception) {
         LOGGER.error("Internal error", exception);
         return HttpResponse.of(HttpStatus.INTERNAL_SERVER_ERROR)
-                .content("", (String) properties.get(HttpMode.CONTENT_TYPE));
+                .content(new byte[0], (String) properties.get(HttpMode.CONTENT_TYPE));
     }
 
     /**

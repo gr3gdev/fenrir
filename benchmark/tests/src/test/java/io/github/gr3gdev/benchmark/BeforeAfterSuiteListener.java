@@ -3,12 +3,11 @@ package io.github.gr3gdev.benchmark;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.gr3gdev.bench.data.Request;
 import io.github.gr3gdev.benchmark.test.data.Framework;
 import io.github.gr3gdev.benchmark.test.data.Report;
-import io.github.gr3gdev.bench.data.Request;
 import io.github.gr3gdev.benchmark.test.data.chart.Bar;
 import io.github.gr3gdev.benchmark.test.data.chart.BarChart;
-import io.github.gr3gdev.benchmark.test.data.chart.LineChart;
 import io.github.gr3gdev.benchmark.test.utils.CommandUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.platform.launcher.TestExecutionListener;
@@ -69,23 +68,6 @@ public class BeforeAfterSuiteListener implements TestExecutionListener {
     }
 
     private void writeJSON() {
-        final Map<String, BarChart> averageCharts = new HashMap<>();
-        TestSuite.report.getCharts().forEach((name, chart) -> {
-            if (chart instanceof LineChart lineChart) {
-                final BarChart barChart = new BarChart(chart.getKey(), Arrays.stream(Framework.values()).map(Framework::getName).toList());
-                final Bar bar = new Bar(lineChart.getAverageLabel());
-                bar.setData(lineChart.getDatasets().stream()
-                        .map(d -> d.getData().stream()
-                                .mapToDouble(Float::doubleValue)
-                                .average()
-                                .orElse(Double.NaN))
-                        .toList());
-                barChart.getDatasets().add(bar);
-                averageCharts.put(chart.getKey() + "Chart", barChart);
-            }
-        });
-        TestSuite.report.getCharts().putAll(averageCharts);
-
         final ObjectMapper mapper = new ObjectMapper();
         try {
             mapper.writeValue(new File("report.json"), TestSuite.report);
