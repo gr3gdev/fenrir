@@ -3,6 +3,7 @@ package io.github.gr3gdev.bench;
 import io.github.gr3gdev.bench.data.Request;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -18,7 +19,7 @@ public class BenchTest {
 
     @FunctionalInterface
     public interface OnComplete {
-        void execute(HttpResponse<String> response, Long time, Exception error);
+        void execute(HttpResponse<InputStream> response, Long time, Exception error);
     }
 
     public static void execute(HttpClient client, Request.Data request, int exposePort,
@@ -35,7 +36,7 @@ public class BenchTest {
                 .build();
         final Instant start = Instant.now();
         try {
-            final HttpResponse<String> httpResponse = client.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+            final HttpResponse<InputStream> httpResponse = client.send(httpRequest, HttpResponse.BodyHandlers.ofInputStream());
             onResponse.execute(httpResponse, Duration.between(start, Instant.now()).toMillis(), null);
         } catch (IOException | InterruptedException e) {
             onResponse.execute(null, Duration.between(start, Instant.now()).toMillis(), e);

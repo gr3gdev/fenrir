@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Route(plugin = JsonPlugin.class, path = "/test")
-public class CustomRoute {
+public class TestRoute {
 
     private final List<Custom> data = new ArrayList<>();
 

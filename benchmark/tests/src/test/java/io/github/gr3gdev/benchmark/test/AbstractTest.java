@@ -20,6 +20,10 @@ import org.testcontainers.containers.output.ToStringConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.DockerImageName;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
@@ -27,6 +31,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
@@ -183,7 +188,29 @@ public abstract class AbstractTest {
                                 error.printStackTrace();
                                 res = -1L;
                             }
-                            TestSuite.responses.get(framework).put(req, httpResponse);
+                            final File requestFile = TestSuite.getRequestFile(framework, req, iteration.index(), iteration.memory());
+                            try (final FileOutputStream output = new FileOutputStream(requestFile)) {
+                                Optional.ofNullable(httpResponse)
+                                        .ifPresentOrElse(
+                                                r -> {
+                                                    try (final InputStream input = r.body()) {
+                                                        output.write((r.statusCode() + "\n").getBytes(StandardCharsets.UTF_8));
+                                                        input.transferTo(output);
+                                                    } catch (IOException e) {
+                                                        throw new RuntimeException(e);
+                                                    }
+                                                },
+                                                () -> {
+                                                    try {
+                                                        output.write(logService.toUtf8String().getBytes(StandardCharsets.UTF_8));
+                                                    } catch (IOException e) {
+                                                        throw new RuntimeException(e);
+                                                    }
+                                                }
+                                        );
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
                             final String key = "requestTimeChart" + req.name();
                             ((LineChart) TestSuite.report.getCharts()
                                     .computeIfAbsent(key,

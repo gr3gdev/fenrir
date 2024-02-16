@@ -24,7 +24,7 @@ public final class HttpRouteListener extends HttpListener implements RouteListen
         HttpResponse response = this.run.apply(httpRequest);
         try {
             output.write(constructResponseHeader(response));
-            output.write(response.getContent());
+            response.getWrite().accept(output);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

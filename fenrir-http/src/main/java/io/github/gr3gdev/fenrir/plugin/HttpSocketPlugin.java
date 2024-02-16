@@ -9,8 +9,11 @@ import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * An abstract implementation of {@link SocketPlugin} for {@link HttpMode}.
@@ -40,16 +43,23 @@ public abstract class HttpSocketPlugin<T> extends SocketPlugin<T, HttpRequest, H
      * Convert the method's return to a String value to be written in the response.
      *
      * @param methodReturn the method return
-     * @return Array of bytes
+     * @return Consumer with the output stream in parameter
      * @throws HttpSocketException exception thrown when the conversion is impossible or invalid
      */
-    protected abstract byte[] toBytes(T methodReturn) throws HttpSocketException;
+    protected abstract Consumer<OutputStream> write(T methodReturn) throws HttpSocketException;
 
     protected HttpResponse process(T methodReturn, HttpStatus responseCode, String contentType) {
         try {
-            return HttpResponse.of(responseCode).content(toBytes(methodReturn), contentType);
+            return HttpResponse.of(responseCode).content(write(methodReturn), contentType);
         } catch (HttpSocketException exc) {
-            return HttpResponse.of(exc.getReturnStatus()).content(exc.getMessage().getBytes(StandardCharsets.UTF_8), contentType);
+            return HttpResponse.of(exc.getReturnStatus())
+                    .content(out -> {
+                        try {
+                            out.write(exc.getMessage().getBytes(StandardCharsets.UTF_8));
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }, contentType);
         }
     }
 
@@ -60,7 +70,7 @@ public abstract class HttpSocketPlugin<T> extends SocketPlugin<T, HttpRequest, H
     protected HttpResponse processInternalError(Map<String, Object> properties, Exception exception) {
         LOGGER.error("Internal error", exception);
         return HttpResponse.of(HttpStatus.INTERNAL_SERVER_ERROR)
-                .content(new byte[0], (String) properties.get(HttpMode.CONTENT_TYPE));
+                .contentType((String) properties.get(HttpMode.CONTENT_TYPE));
     }
 
     /**

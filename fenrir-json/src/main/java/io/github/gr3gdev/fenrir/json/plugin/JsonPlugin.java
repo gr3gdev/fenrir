@@ -12,8 +12,10 @@ import io.github.gr3gdev.fenrir.plugin.HttpSocketPlugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.charset.StandardCharsets;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * Implementation {@link HttpSocketPlugin}, convert return method and parameters into JSON.
@@ -37,7 +39,7 @@ public class JsonPlugin extends HttpSocketPlugin<Object> {
     @Override
     protected HttpResponse process(Object methodReturn, HttpStatus responseCode, String contentType) {
         if (methodReturn instanceof Optional<?> optional && optional.isEmpty()) {
-            return HttpResponse.of(HttpStatus.NO_CONTENT).content(new byte[0], contentType);
+            return HttpResponse.of(HttpStatus.NO_CONTENT).contentType(contentType);
         } else {
             return super.process(methodReturn, responseCode, contentType);
         }
@@ -62,16 +64,24 @@ public class JsonPlugin extends HttpSocketPlugin<Object> {
      * {@inheritDoc}
      */
     @Override
-    protected byte[] toBytes(Object methodReturn) {
+    protected Consumer<OutputStream> write(Object methodReturn) {
         LOGGER.trace("Convert method return to string");
         if (methodReturn != null) {
-            try {
-                return mapper.writeValueAsString(methodReturn).getBytes(StandardCharsets.UTF_8);
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-            }
+            return output -> {
+                try {
+                    mapper.writeValue(output, methodReturn);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            };
         } else {
-            return new byte[0];
+            return output -> {
+                try {
+                    output.write(new byte[0]);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            };
         }
     }
 }

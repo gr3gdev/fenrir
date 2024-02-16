@@ -1,1 +1,1 @@
-{"charts":{"dockerImageSizeChart":{"key":"dockerImageSize","labels":["Spring","Quarkus","Fenrir"],"datasets":[{"label":"Docker image size (MB)","data":[383.0,495.0,121.0],"borderWidth":1}],"type":"bar"}}}
+{"charts":{"dockerImageSizeChart":{"key":"dockerImageSize","labels":["Spring","Quarkus","Fenrir"],"datasets":[{"label":"Docker image size (MB)","data":[379.0,495.0,120.0],"borderWidth":1}],"type":"bar"}}}

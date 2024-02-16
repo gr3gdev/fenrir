@@ -33,7 +33,7 @@ public class WebSocketMode implements Mode<WebSocketListener, ErrorListener, Web
      * {@inheritDoc}
      */
     @Override
-    public Listeners<WebSocketRequest, WebSocketListener, ErrorListener> init(Class<?> mainClass, Map<Class<?>, Plugin> plugins, Properties fenrirProperties,
+    public Listeners<WebSocketRequest, WebSocketListener, ErrorListener> init(Class<?> mainClass, ConcurrentMap<Class<?>, Plugin> plugins, Properties fenrirProperties,
                                                                               List<Interceptor<?, WebSocketResponse, ?>> interceptors) {
         LOGGER.trace("Init WebSocket runtime mode");
         final Map<Class<?>, Object> websockets = parseAndInitWebsockets(mainClass);

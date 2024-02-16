@@ -18,11 +18,10 @@ public class HttpErrorListener extends HttpListener implements ErrorListener {
      */
     @Override
     public void handleEvent(OutputStream output, String message) {
-        LOGGER.error(message);
-        final HttpResponse response = HttpResponse.of(HttpStatus.INTERNAL_SERVER_ERROR);
+        LOGGER.warn(message);
+        final HttpResponse response = HttpResponse.of(HttpStatus.NOT_FOUND);
         try {
             output.write(constructResponseHeader(response));
-            output.flush();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

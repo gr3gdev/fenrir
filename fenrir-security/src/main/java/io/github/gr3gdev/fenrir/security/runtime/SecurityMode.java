@@ -14,8 +14,8 @@ import io.github.gr3gdev.fenrir.security.service.SecurityService;
 import io.github.gr3gdev.fenrir.security.validator.SecurityValidator;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * HTTP Mode with security (for example : application server, REST API).
@@ -23,7 +23,7 @@ import java.util.Properties;
 public class SecurityMode extends HttpMode {
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    public Listeners<HttpRequest, HttpRouteListener, HttpErrorListener> init(Class<?> mainClass, Map<Class<?>, Plugin> plugins, Properties fenrirProperties,
+    public Listeners<HttpRequest, HttpRouteListener, HttpErrorListener> init(Class<?> mainClass, ConcurrentMap<Class<?>, Plugin> plugins, Properties fenrirProperties,
                                                                              List<Interceptor<?, HttpResponse, ?>> interceptors) {
         final SecurityConfiguration securityConfiguration = mainClass.getAnnotation(SecurityConfiguration.class);
         if (securityConfiguration == null) {

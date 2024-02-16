@@ -5,8 +5,11 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * Implementation for HTTP response.
@@ -14,15 +17,21 @@ import java.util.Set;
 @Getter
 public class HttpResponse implements Response {
 
-    private byte[] content;
+    private Consumer<OutputStream> write;
     @Setter
     private HttpStatus status;
-    private String contentType;
     private String redirect;
+    private String contentType;
     private final Set<Cookie> cookies = new HashSet<>();
 
     private HttpResponse() {
-        content = new byte[0];
+        write = (output) -> {
+            try {
+                output.write(new byte[0]);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        };
         contentType = "text/html";
     }
 
@@ -39,14 +48,25 @@ public class HttpResponse implements Response {
     }
 
     /**
-     * Response from text.
+     * Specify a method to write a Response.
      *
-     * @param content     The content
-     * @param contentType The content-type of the text
+     * @param write       The functional interface called to write content
+     * @param contentType The content-type of the response
      * @return Response
      */
-    public HttpResponse content(byte[] content, String contentType) {
-        this.content = content;
+    public HttpResponse content(Consumer<OutputStream> write, String contentType) {
+        this.write = write;
+        this.contentType = contentType;
+        return this;
+    }
+
+    /**
+     * Define a content-type.
+     *
+     * @param contentType The content-type of the response
+     * @return Response
+     */
+    public HttpResponse contentType(String contentType) {
         this.contentType = contentType;
         return this;
     }

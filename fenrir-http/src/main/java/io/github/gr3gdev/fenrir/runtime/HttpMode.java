@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -44,31 +45,31 @@ public class HttpMode implements Mode<HttpRouteListener, HttpErrorListener, Http
      * {@inheritDoc}
      */
     @Override
-    public Listeners<HttpRequest, HttpRouteListener, HttpErrorListener> init(Class<?> mainClass, Map<Class<?>, Plugin> plugins, Properties fenrirProperties,
+    public Listeners<HttpRequest, HttpRouteListener, HttpErrorListener> init(Class<?> mainClass, ConcurrentMap<Class<?>, Plugin> plugins, Properties fenrirProperties,
                                                                              List<Interceptor<?, HttpResponse, ?>> interceptors) {
         LOGGER.trace("Init HTTP runtime mode");
-        final Map<Class<?>, Object> routes = parseAndInitRoutes(mainClass);
-        final Map<Class<?>, RouteValidator> validatorCache = new HashMap<>();
+        final ConcurrentMap<Class<?>, Object> routes = parseAndInitRoutes(mainClass);
+        final ConcurrentMap<Class<?>, RouteValidator> validatorCache = new ConcurrentHashMap<>();
         final ConcurrentMap<HttpRequest, HttpRouteListener> routeListeners = routes.entrySet().parallelStream()
                 .map(entry -> findListeners(plugins, entry.getKey(), entry.getValue(), validatorCache, interceptors))
-                .flatMap(e -> e.entrySet().stream())
+                .flatMap(m -> m.entrySet().stream())
                 .collect(Collectors.toConcurrentMap(Map.Entry::getKey, Map.Entry::getValue));
         return new Listeners<>(routeListeners, new HttpErrorListener());
     }
 
-    private Map<Class<?>, Object> parseAndInitRoutes(Class<?> mainClass) {
+    private ConcurrentMap<Class<?>, Object> parseAndInitRoutes(Class<?> mainClass) {
         final HttpConfiguration annotation = mainClass.getAnnotation(HttpConfiguration.class);
         if (annotation == null) {
             throw new RuntimeException("Missing @HttpConfiguration annotation on the main class : " + mainClass.getCanonicalName());
         }
         return Arrays.stream(annotation.routes())
                 .parallel()
-                .collect(Collectors.toMap(Function.identity(), ClassUtils::newInstance));
+                .collect(Collectors.toConcurrentMap(Function.identity(), ClassUtils::newInstance));
     }
 
     private ConcurrentMap<HttpRequest, HttpRouteListener> findListeners(Map<Class<?>, Plugin> plugins,
                                                                         Class<?> routeClass, Object routeInstance,
-                                                                        Map<Class<?>, RouteValidator> validatorCache,
+                                                                        ConcurrentMap<Class<?>, RouteValidator> validatorCache,
                                                                         List<Interceptor<?, HttpResponse, ?>> interceptors) {
         LOGGER.trace("Find socket events for {}", routeClass.getCanonicalName());
         final Route route = routeClass.getAnnotation(Route.class);
@@ -81,7 +82,7 @@ public class HttpMode implements Mode<HttpRouteListener, HttpErrorListener, Http
         return Arrays.stream(routeClass.getMethods()).parallel()
                 .filter(m -> m.isAnnotationPresent(Listener.class))
                 .map(m -> mapMethodToListener(route, routeClass, routeInstance, validatorCache, m, plugin, interceptors, listenerRefs))
-                .flatMap(e -> e.entrySet().stream())
+                .flatMap(m -> m.entrySet().stream())
                 .collect(Collectors.toConcurrentMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
@@ -90,7 +91,7 @@ public class HttpMode implements Mode<HttpRouteListener, HttpErrorListener, Http
         return completePath.replace("//", "/");
     }
 
-    private void initValidators(Class<? extends RouteValidator>[] validators, Map<Class<?>, RouteValidator> validatorCache) {
+    private void initValidators(Class<? extends RouteValidator>[] validators, ConcurrentMap<Class<?>, RouteValidator> validatorCache) {
         Arrays.stream(validators)
                 .parallel()
                 .forEach(v -> validatorCache.computeIfAbsent(v, k -> {
@@ -107,7 +108,7 @@ public class HttpMode implements Mode<HttpRouteListener, HttpErrorListener, Http
         }
     }
 
-    private Map<HttpRequest, HttpRouteListener> mapMethodToListener(Route route, Class<?> routeClass, Object routeInstance, Map<Class<?>, RouteValidator> validatorCache,
+    private Map<HttpRequest, HttpRouteListener> mapMethodToListener(Route route, Class<?> routeClass, Object routeInstance, ConcurrentMap<Class<?>, RouteValidator> validatorCache,
                                                                     Method m, HttpSocketPlugin<?> plugin, List<Interceptor<?, HttpResponse, ?>> interceptors,
                                                                     List<String> listenerRefs) {
         final Listener listenerAnnotation = m.getAnnotation(Listener.class);

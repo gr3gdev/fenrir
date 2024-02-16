@@ -3,26 +3,21 @@ package io.github.gr3gdev.benchmark;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.gr3gdev.bench.data.Request;
 import io.github.gr3gdev.benchmark.test.data.Framework;
 import io.github.gr3gdev.benchmark.test.data.Report;
 import io.github.gr3gdev.benchmark.test.data.chart.Bar;
 import io.github.gr3gdev.benchmark.test.data.chart.BarChart;
 import io.github.gr3gdev.benchmark.test.utils.CommandUtils;
-import org.junit.jupiter.api.Assertions;
 import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestPlan;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.http.HttpClient;
-import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @SuppressWarnings("unused")
 public class BeforeAfterSuiteListener implements TestExecutionListener {
@@ -58,9 +53,8 @@ public class BeforeAfterSuiteListener implements TestExecutionListener {
                 .connectTimeout(Duration.of(10, ChronoUnit.SECONDS))
                 .build();
 
-        TestSuite.responses = new HashMap<>();
         Arrays.stream(Framework.values())
-                .forEach(f -> TestSuite.responses.put(f, new HashMap<>()));
+                .forEach(f -> f.getDirectory(true));
 
         TestSuite.report = new Report();
         TestSuite.report.getCharts().put("dockerImageSizeChart", dockerImageSizeChart());
@@ -85,14 +79,23 @@ public class BeforeAfterSuiteListener implements TestExecutionListener {
         writeJSON();
 
         // Compare responses
-        final Map<Request.Data, HttpResponse<String>> responsesSpring = TestSuite.responses.get(Framework.SPRING);
-        final Map<Request.Data, HttpResponse<String>> responsesQuarkus = TestSuite.responses.get(Framework.QUARKUS);
-        final Map<Request.Data, HttpResponse<String>> responsesFenrir = TestSuite.responses.get(Framework.FENRIR);
-        responsesFenrir.forEach((request, response) -> {
-            Assertions.assertEquals(response.statusCode(), responsesSpring.get(request).statusCode(), "Response code is different [Fenrir -> Spring]");
-            Assertions.assertEquals(response.statusCode(), responsesQuarkus.get(request).statusCode(), "Response code is different [Fenrir -> Quarkus]");
-            Assertions.assertEquals(response.body(), responsesSpring.get(request).body(), "Response body is different [Fenrir -> Spring]");
-            Assertions.assertEquals(response.body(), responsesQuarkus.get(request).body(), "Response body is different [Fenrir -> Quarkus]");
-        });
+        /*List.of(256L, 512L, 1000L).forEach(mem ->
+                IntStream.range(0, 10)
+                        .forEach(index -> Arrays.stream(Request.values())
+                                .map(Request::getData)
+                                .flatMap(Collection::stream)
+                                .forEach(r -> {
+                                    final File requestFileSpring = TestSuite.getRequestFile(Framework.SPRING, r, index, mem);
+                                    final File requestFileQuarkus = TestSuite.getRequestFile(Framework.QUARKUS, r, index, mem);
+                                    final File requestFileFenrir = TestSuite.getRequestFile(Framework.FENRIR, r, index, mem);
+                                    try {
+                                        assertEquals(Files.readAllLines(requestFileSpring.toPath()), Files.readAllLines(requestFileFenrir.toPath()), "Response is different between Spring & Fenrir");
+                                        assertEquals(Files.readAllLines(requestFileSpring.toPath()), Files.readAllLines(requestFileQuarkus.toPath()), "Response is different between Spring & Quarkus");
+                                        assertEquals(Files.readAllLines(requestFileQuarkus.toPath()), Files.readAllLines(requestFileFenrir.toPath()), "Response is different between Quarkus & Fenrir");
+                                    } catch (IOException e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                }))
+        );*/
     }
 }

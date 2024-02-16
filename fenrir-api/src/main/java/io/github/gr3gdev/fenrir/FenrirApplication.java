@@ -14,8 +14,8 @@ import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -67,7 +67,7 @@ public final class FenrirApplication {
             LOGGER.trace("Init interceptors...");
             final List<Interceptor> interceptors = configuration.getInterceptors().stream().map(i -> (Interceptor) ClassUtils.newInstance(i)).toList();
             LOGGER.trace("Init plugins...");
-            final Map<Class<?>, Plugin> plugins = loadPlugins(configuration, mainClass, fenrirProperties);
+            final ConcurrentMap<Class<?>, Plugin> plugins = loadPlugins(configuration, mainClass, fenrirProperties);
             LOGGER.trace("Init modes...");
             final Server server = new Server(determinePort(fenrirProperties));
             initModes(configuration, mainClass, plugins, server, fenrirProperties, interceptors);
@@ -79,12 +79,14 @@ public final class FenrirApplication {
 
     private static int determinePort(FenrirProperties fenrirProperties) {
         final String port = fenrirProperties.getProperty("fenrir.port");
-        return Optional.ofNullable(port).map(Integer::parseInt).orElse(0);
+        return Optional.ofNullable(port)
+                .map(Integer::parseInt)
+                .orElse(0);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static void initModes(final FenrirConfigurationInternal configuration, final Class<?> mainClass,
-                                  final Map<Class<?>, Plugin> plugins, final Server server,
+                                  final ConcurrentMap<Class<?>, Plugin> plugins, final Server server,
                                   final FenrirProperties fenrirProperties, final List<Interceptor> interceptors) {
         configuration.getModes().parallelStream().forEach(mode -> {
             try {
@@ -99,8 +101,10 @@ public final class FenrirApplication {
         });
     }
 
-    private static Map<Class<?>, Plugin> loadPlugins(final FenrirConfigurationInternal configuration, final Class<?> mainClass, final FenrirProperties fenrirProperties) {
-        return configuration.getPlugins().parallelStream().map(pluginClass -> initPlugin(pluginClass, mainClass, fenrirProperties)).collect(Collectors.toMap(Plugin::getClass, Function.identity()));
+    private static ConcurrentMap<Class<?>, Plugin> loadPlugins(final FenrirConfigurationInternal configuration, final Class<?> mainClass, final FenrirProperties fenrirProperties) {
+        return configuration.getPlugins().parallelStream()
+                .map(pluginClass -> initPlugin(pluginClass, mainClass, fenrirProperties))
+                .collect(Collectors.toConcurrentMap(Plugin::getClass, Function.identity()));
     }
 
     private static Plugin initPlugin(final Class<? extends Plugin> pluginClass, final Class<?> mainClass, final FenrirProperties fenrirProperties) {

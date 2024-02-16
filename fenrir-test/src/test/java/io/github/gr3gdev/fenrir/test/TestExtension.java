@@ -1,14 +1,15 @@
 package io.github.gr3gdev.fenrir.test;
 
 import io.github.gr3gdev.fenrir.http.HttpMethod;
-import io.github.gr3gdev.fenrir.test.sample.CustomRoute;
 import io.github.gr3gdev.fenrir.test.sample.MyApp;
+import io.github.gr3gdev.fenrir.test.sample.TestRoute;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
 import java.net.http.HttpResponse;
 import java.util.logging.LogManager;
+import java.util.stream.IntStream;
 
 @ExtendWith(FenrirExtension.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -54,7 +55,7 @@ public class TestExtension {
                 .contentType("application/json")
                 .method(HttpMethod.POST)
                 .path("/test/")
-                .body(new CustomRoute.Custom("c1", "custom 1"))
+                .body(new TestRoute.Custom("c1", "custom 1"))
                 .build());
         Assertions.assertEquals(201, response.statusCode());
         Assertions.assertEquals("{\"name\":\"c1\",\"value\":\"custom 1\"}", response.body());
@@ -67,7 +68,7 @@ public class TestExtension {
                 .contentType("application/json")
                 .method(HttpMethod.PUT)
                 .path("/test/")
-                .body(new CustomRoute.Custom("c1", "custom 1 updated"))
+                .body(new TestRoute.Custom("c1", "custom 1 updated"))
                 .build());
         Assertions.assertEquals(200, response.statusCode());
         Assertions.assertEquals("{\"name\":\"c1\",\"value\":\"custom 1 updated\"}", response.body());
@@ -84,4 +85,24 @@ public class TestExtension {
         Assertions.assertEquals("[{\"name\":\"c1\",\"value\":\"custom 1 updated\"}]", response.body());
     }
 
+    @Test
+    void notFound() {
+        final HttpResponse<String> response = testApplication.execute(Request.builder()
+                .method(HttpMethod.GET)
+                .path("/unknown")
+                .build());
+        Assertions.assertEquals(404, response.statusCode());
+    }
+
+    @Test
+    void multiple() {
+        IntStream.range(1, 11).forEach(index -> {
+            final HttpResponse<String> response = testApplication.execute(Request.builder()
+                    .method(HttpMethod.GET)
+                    .path("/test" + index + "/")
+                    .build());
+            Assertions.assertEquals(200, response.statusCode());
+            Assertions.assertEquals("\"" + index + "\"", response.body());
+        });
+    }
 }

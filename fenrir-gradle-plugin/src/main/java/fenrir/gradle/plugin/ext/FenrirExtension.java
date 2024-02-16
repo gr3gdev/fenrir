@@ -1,13 +1,11 @@
 package fenrir.gradle.plugin.ext;
 
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
  * Plugin extension.
  */
 @Data
-@NoArgsConstructor
 public class FenrirExtension {
 
     /**

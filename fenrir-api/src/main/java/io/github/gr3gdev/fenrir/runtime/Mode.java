@@ -5,8 +5,8 @@ import io.github.gr3gdev.fenrir.interceptor.Interceptor;
 import io.github.gr3gdev.fenrir.plugin.Plugin;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * The runtime mode for the server.
@@ -23,8 +23,8 @@ public interface Mode<R extends RouteListener, E extends ErrorListener, RE exten
      * @param interceptors     the list of interceptor
      * @return Map of SocketEvent by index
      */
-    Listeners<RE, R, E> init(Class<?> mainClass, Map<Class<?>, Plugin> plugins, Properties fenrirProperties,
-                            List<Interceptor<?, RS, ?>> interceptors);
+    Listeners<RE, R, E> init(Class<?> mainClass, ConcurrentMap<Class<?>, Plugin> plugins, Properties fenrirProperties,
+                             List<Interceptor<?, RS, ?>> interceptors);
 
     /**
      * @return the class of the SocketReader implementation.

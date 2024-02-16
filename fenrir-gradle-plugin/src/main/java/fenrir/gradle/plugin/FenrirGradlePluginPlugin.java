@@ -4,7 +4,6 @@ import fenrir.gradle.plugin.ext.FenrirExtension;
 import fenrir.gradle.plugin.task.DockerImageTask;
 import fenrir.gradle.plugin.task.ListJavaDependenciesTask;
 import fenrir.gradle.plugin.task.PrepareSourcesTask;
-import lombok.NoArgsConstructor;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
@@ -12,7 +11,6 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Fenrir Gradle plugin.
  */
-@NoArgsConstructor
 public abstract class FenrirGradlePluginPlugin extends JavaPlugin {
 
     /**

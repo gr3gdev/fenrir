@@ -2,6 +2,13 @@ package io.github.gr3gdev.benchmark.test.data;
 
 import io.github.gr3gdev.bench.Iteration;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -66,5 +73,35 @@ public enum Framework {
 
     public String getColor(Iteration iteration) {
         return color.get(iteration.memory());
+    }
+
+    public File getDirectory(boolean init) {
+        final File directory = new File("build", this.name.toLowerCase());
+        if (init) {
+            try {
+                if (directory.exists()) {
+                    Files.walkFileTree(directory.toPath(), new SimpleFileVisitor<Path>() {
+                        @Override
+                        public FileVisitResult postVisitDirectory(
+                                Path dir, IOException exc) throws IOException {
+                            Files.delete(dir);
+                            return FileVisitResult.CONTINUE;
+                        }
+
+                        @Override
+                        public FileVisitResult visitFile(
+                                Path file, BasicFileAttributes attrs)
+                                throws IOException {
+                            Files.delete(file);
+                            return FileVisitResult.CONTINUE;
+                        }
+                    });
+                }
+                Files.createDirectory(directory.toPath());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return directory;
     }
 }

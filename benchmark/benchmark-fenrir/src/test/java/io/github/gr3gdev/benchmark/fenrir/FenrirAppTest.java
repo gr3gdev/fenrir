@@ -20,6 +20,7 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.DockerImageName;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.LogManager;
@@ -81,13 +82,17 @@ public class FenrirAppTest {
         }
     }
 
-    void validate(HttpResponse<String> res, Long time, Exception error) {
+    void validate(HttpResponse<InputStream> res, Long time, Exception error) {
         if (error != null) {
             error.printStackTrace();
             fail(error.getMessage());
         }
-        System.out.println(res + " in " + time + "ms");
-        Assertions.assertTrue(time < 1000L);
+        try (final InputStream ignored = res.body()) {
+            System.out.println(res + " in " + time + "ms");
+            Assertions.assertTrue(time < 500L);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Order(1)

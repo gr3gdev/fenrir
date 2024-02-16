@@ -15,7 +15,7 @@ public abstract class HttpListener {
             headers.add("Location: " + httpResponse.getRedirect());
         } else {
             headers.add("Content-Type: " + httpResponse.getContentType());
-            headers.add("Content-Length: " + httpResponse.getContent().length);
+            //headers.add("Content-Length: " + httpResponse.getContent().length);
         }
         httpResponse.getCookies().forEach(cookie -> headers.add("Set-Cookie: " + cookie));
         return ("HTTP/1.1 " + httpResponse.getStatus().getCode() + "\r\n"
