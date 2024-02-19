@@ -1,10 +1,12 @@
 package io.github.gr3gdev.benchmark.spring.controller;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Optional;
 
 public abstract class AbstractController<E> {
@@ -15,8 +17,9 @@ public abstract class AbstractController<E> {
     }
 
     @GetMapping("/")
-    public List<E> findAll() {
-        return repository.findAll();
+    public Page<E> findAll(@RequestParam("page") String pageNumber, @RequestParam("size") String size) {
+        return repository.findAll(
+                PageRequest.of(Integer.parseInt(pageNumber), Integer.parseInt(size), Sort.by(Sort.Direction.ASC, "id")));
     }
 
     @GetMapping("/{id}")

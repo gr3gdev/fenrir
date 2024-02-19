@@ -57,15 +57,16 @@ public final class JPAManager {
     }
 
     static <E> CriteriaQuery<E> selectFromClass(Class<E> domainClass) {
-        return selectFromClass(domainClass, Map.of());
+        return selectFromClass(domainClass, Map.of(), Map.of());
     }
 
-    static <E> CriteriaQuery<E> selectFromClass(Class<E> domainClass, Map<String, Object> filters) {
+    static <E> CriteriaQuery<E> selectFromClass(Class<E> domainClass, Map<String, Object> filters, Map<String, Boolean> sorts) {
         final EntityManager em = JPAManager.entityManager();
         final CriteriaBuilder cb = em.getCriteriaBuilder();
         final CriteriaQuery<E> query = cb.createQuery(domainClass);
         final Root<E> root = query.from(domainClass);
         CriteriaQuery<E> res = query.select(root);
+        sorts.forEach((column, asc) -> query.orderBy(asc ? cb.asc(root.get(column)) : cb.desc(root.get(column))));
         for (final Map.Entry<String, Object> entry : filters.entrySet()) {
             res = res.where(cb.equal(root.get(entry.getKey()), entry.getValue()));
         }

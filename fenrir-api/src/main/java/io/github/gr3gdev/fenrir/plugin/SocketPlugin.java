@@ -132,14 +132,18 @@ public abstract class SocketPlugin<M, RQ extends Request, RS extends Response> i
     }
 
     private Object mapToParameterType(String value, Class<?> type) {
-        if (type.isAssignableFrom(Long.class)) {
+        if (type.isAssignableFrom(Long.class) || type.equals(long.class)) {
             return Long.parseLong(value);
-        } else if (type.isAssignableFrom(Integer.class)) {
+        } else if (type.isAssignableFrom(Integer.class) || type.equals(int.class)) {
             return Integer.parseInt(value);
+        } else if (type.isAssignableFrom(Float.class) || type.equals(float.class)) {
+            return Float.parseFloat(value);
+        } else if (type.isAssignableFrom(Double.class) || type.equals(double.class)) {
+            return Double.parseDouble(value);
         } else if (type.isAssignableFrom(String.class)) {
             return value;
         }
-        throw new RuntimeException("Parameter type " + type.getCanonicalName() + " is not yet implemented");
+        throw new RuntimeException("Parameter type " + type.getCanonicalName() + " is not yet implemented, please use String");
     }
 
     /**

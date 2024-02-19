@@ -6,8 +6,9 @@ import io.github.gr3gdev.fenrir.annotation.Param;
 import io.github.gr3gdev.fenrir.http.HttpMethod;
 import io.github.gr3gdev.fenrir.http.HttpStatus;
 import io.github.gr3gdev.fenrir.jpa.JpaRepository;
+import io.github.gr3gdev.fenrir.jpa.page.Page;
+import io.github.gr3gdev.fenrir.jpa.page.Sort;
 
-import java.util.List;
 import java.util.Optional;
 
 public abstract class AbstractRest<E> {
@@ -18,8 +19,8 @@ public abstract class AbstractRest<E> {
     }
 
     @Listener(path = "/", contentType = "application/json")
-    public List<E> findAll() {
-        return repository.findAll();
+    public Page<E> findAll(@Param("page") int page, @Param("size") int size) {
+        return repository.findAll(page, size, new Sort("id", Sort.Direction.ASC));
     }
 
     @Listener(path = "/{id}", contentType = "application/json")

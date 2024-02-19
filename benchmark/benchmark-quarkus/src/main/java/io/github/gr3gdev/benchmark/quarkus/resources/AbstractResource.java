@@ -2,9 +2,11 @@ package io.github.gr3gdev.benchmark.quarkus.resources;
 
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
 import java.util.Optional;
 
 public class AbstractResource<E> {
@@ -16,8 +18,9 @@ public class AbstractResource<E> {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<E> findAll() {
-        return repository.findAll();
+    public Page<E> findAll(@QueryParam("page") String pageNumber, @QueryParam("size") String size) {
+        return repository.findAll(
+                PageRequest.of(Integer.parseInt(pageNumber), Integer.parseInt(size), Sort.by(Sort.Direction.ASC, "id")));
     }
 
     @GET

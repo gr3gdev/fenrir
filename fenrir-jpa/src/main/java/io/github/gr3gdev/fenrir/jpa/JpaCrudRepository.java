@@ -1,6 +1,7 @@
 package io.github.gr3gdev.fenrir.jpa;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static io.github.gr3gdev.fenrir.jpa.JPAManager.*;
@@ -42,7 +43,7 @@ public interface JpaCrudRepository<E, K> extends JpaTransactionalRepository {
      */
     default Optional<E> findById(K id) {
         return entityManager()
-                .createQuery(selectFromClass(getDomainClass(), getPrimaryKeyFilter(getDomainClass(), id)))
+                .createQuery(selectFromClass(getDomainClass(), getPrimaryKeyFilter(getDomainClass(), id), Map.of()))
                 .getResultList()
                 .stream()
                 .findFirst();
