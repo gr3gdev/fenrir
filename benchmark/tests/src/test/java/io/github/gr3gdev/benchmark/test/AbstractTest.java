@@ -2,7 +2,6 @@ package io.github.gr3gdev.benchmark.test;
 
 import io.github.gr3gdev.bench.BenchTest;
 import io.github.gr3gdev.bench.Iteration;
-import io.github.gr3gdev.bench.data.Request;
 import io.github.gr3gdev.benchmark.TestSuite;
 import io.github.gr3gdev.benchmark.test.data.Framework;
 import io.github.gr3gdev.benchmark.test.data.chart.LineChart;
@@ -25,11 +24,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -89,10 +87,12 @@ public abstract class AbstractTest {
 
     @BeforeAll
     public static void startDatabase() {
+        System.out.println("Start container database");
         ToStringConsumer logDatabase = new ToStringConsumer();
         database = new DatabaseContainer().withLogConsumer(logDatabase);
         try {
             database.start();
+            System.out.println("Container database is started");
         } catch (ContainerLaunchException exc) {
             System.out.println(logDatabase.toString(StandardCharsets.UTF_8));
             throw exc;
@@ -140,12 +140,14 @@ public abstract class AbstractTest {
     }
 
     public void start(Iteration iteration) {
+        System.out.println("Start container " + getFramework().name());
         this.logService = new ToStringConsumer();
         this.service = new FrameworkContainer(getFramework(), iteration.memory())
                 .withLogConsumer(logService)
                 .withEnv("DATABASE_URL", "jdbc:postgresql://database:5432/benchmark");
         try {
             service.start();
+            System.out.println("Container " + getFramework().name() + " is started");
         } catch (Exception exc) {
             System.out.println(logService.toString(StandardCharsets.UTF_8));
             throw exc;
@@ -173,50 +175,49 @@ public abstract class AbstractTest {
             @IteratorSource.IterationConf(count = 10, memory = 1000L)
     })
     @DisplayName("Execute benchmark")
-    void benchmark(Iteration iteration) {
+    void benchmark(Iteration iteration) throws IOException {
         start(iteration);
         final Framework framework = getFramework();
         final int exposePort = service.getMappedPort(getFramework().getPort());
-        Arrays.stream(Request.values())
-                .sorted(Comparator.comparing(Request::getOrder))
-                .map(Request::getData)
-                .forEach(d -> d.forEach(req -> BenchTest.execute(TestSuite.client, req, exposePort,
-                        (httpResponse, time, error) -> {
-                            Long res = time;
-                            if (error != null) {
-                                System.out.println(logService.toString(StandardCharsets.UTF_8));
-                                error.printStackTrace();
-                                res = -1L;
-                            }
-                            final File requestFile = TestSuite.getRequestFile(framework, req, iteration.index(), iteration.memory());
-                            try (final FileOutputStream output = new FileOutputStream(requestFile)) {
-                                Optional.ofNullable(httpResponse)
-                                        .ifPresentOrElse(
-                                                r -> {
-                                                    try (final InputStream input = r.body()) {
-                                                        output.write((r.statusCode() + "\n").getBytes(StandardCharsets.UTF_8));
-                                                        input.transferTo(output);
-                                                    } catch (IOException e) {
-                                                        throw new RuntimeException(e);
+        final File iterationDirectory = new File(framework.getDirectory(false), iteration.memory() + "_" + iteration.index());
+        ;
+        BenchTest.load()
+                .forEach(request -> {
+                    System.out.println("Execute " + request.name());
+                    BenchTest.execute(TestSuite.client, request, exposePort,
+                            (httpResponse, time, error) -> {
+                                Long res = time;
+                                if (error != null) {
+                                    System.out.println(logService.toString(StandardCharsets.UTF_8));
+                                    error.printStackTrace();
+                                    res = -1L;
+                                }
+                                final File requestFile = TestSuite.getRequestFile(framework, request, iteration.index(), iteration.memory());
+                                try (final FileOutputStream output = new FileOutputStream(requestFile)) {
+                                    Optional.ofNullable(httpResponse)
+                                            .ifPresent(
+                                                    r -> {
+                                                        try (final InputStream input = r.body()) {
+                                                            output.write((r.statusCode() + "\n").getBytes(StandardCharsets.UTF_8));
+                                                            input.transferTo(output);
+                                                        } catch (IOException e) {
+                                                            throw new RuntimeException(e);
+                                                        }
                                                     }
-                                                },
-                                                () -> {
-                                                    try {
-                                                        output.write(logService.toUtf8String().getBytes(StandardCharsets.UTF_8));
-                                                    } catch (IOException e) {
-                                                        throw new RuntimeException(e);
-                                                    }
-                                                }
-                                        );
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-                            final String key = "requestTimeChart" + req.name();
-                            ((LineChart) TestSuite.report.getCharts()
-                                    .computeIfAbsent(key,
-                                            k -> new LineChart(key, IntStream.range(1, iteration.max() + 1).mapToObj(String::valueOf).toList(), "Average request time (ms)")))
-                                    .save(framework, iteration, req.toString(), res);
-                            sleep();
-                        })));
+                                            );
+                                } catch (IOException e) {
+                                    throw new RuntimeException(e);
+                                }
+                                final String key = "requestTimeChart" + request.uid();
+                                ((LineChart) TestSuite.report.getCharts()
+                                        .computeIfAbsent(key,
+                                                k -> new LineChart(key, IntStream.range(1, iteration.max() + 1).mapToObj(String::valueOf).toList(), "Average request time (ms)")))
+                                        .save(framework, iteration, request.name(), res);
+                                sleep();
+                            });
+                });
+
+        Files.writeString(new File(iterationDirectory, getFramework().name() + ".log").toPath(),
+                logService.toString(StandardCharsets.UTF_8));
     }
 }

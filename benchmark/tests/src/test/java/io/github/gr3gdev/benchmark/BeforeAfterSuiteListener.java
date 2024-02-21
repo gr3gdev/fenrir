@@ -8,13 +8,17 @@ import io.github.gr3gdev.benchmark.test.data.Report;
 import io.github.gr3gdev.benchmark.test.data.chart.Bar;
 import io.github.gr3gdev.benchmark.test.data.chart.BarChart;
 import io.github.gr3gdev.benchmark.test.utils.CommandUtils;
+import org.jetbrains.annotations.Nullable;
 import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestPlan;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.http.HttpClient;
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
@@ -49,6 +53,13 @@ public class BeforeAfterSuiteListener implements TestExecutionListener {
 
     @Override
     public void testPlanExecutionStarted(TestPlan testPlan) {
+        System.setOut(new PrintStream(System.out) {
+            @Override
+            public void println(@Nullable String x) {
+                super.println(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS").format(LocalDateTime.now()) + " : " + x);
+            }
+        });
+
         TestSuite.client = HttpClient.newBuilder()
                 .connectTimeout(Duration.of(10, ChronoUnit.SECONDS))
                 .build();

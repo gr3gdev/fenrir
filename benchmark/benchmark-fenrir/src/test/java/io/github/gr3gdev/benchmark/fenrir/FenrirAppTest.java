@@ -5,7 +5,6 @@ import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.PortBinding;
 import com.github.dockerjava.api.model.Ports;
 import io.github.gr3gdev.bench.BenchTest;
-import io.github.gr3gdev.bench.data.Request;
 import io.github.gr3gdev.fenrir.test.App;
 import io.github.gr3gdev.fenrir.test.BeforeApp;
 import io.github.gr3gdev.fenrir.test.FenrirExtension;
@@ -89,39 +88,15 @@ public class FenrirAppTest {
         }
         try (final InputStream ignored = res.body()) {
             System.out.println(res + " in " + time + "ms");
-            Assertions.assertTrue(time < 500L);
+            Assertions.assertTrue(time < 500L, "Request too long > 500ms");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    @Order(1)
     @Test
-    public void create() {
-        Request.CREATE.getData().forEach(req -> BenchTest.execute(application.client(), req, application.port(), this::validate));
-    }
-
-    @Order(2)
-    @Test
-    public void update() {
-        Request.UPDATE.getData().forEach(req -> BenchTest.execute(application.client(), req, application.port(), this::validate));
-    }
-
-    @Order(3)
-    @Test
-    public void findAll() {
-        Request.FIND_ALL.getData().forEach(req -> BenchTest.execute(application.client(), req, application.port(), this::validate));
-    }
-
-    @Order(4)
-    @Test
-    public void findById() {
-        Request.FIND_BY_ID.getData().forEach(req -> BenchTest.execute(application.client(), req, application.port(), this::validate));
-    }
-
-    @Order(5)
-    @Test
-    public void delete() {
-        Request.DELETE.getData().forEach(req -> BenchTest.execute(application.client(), req, application.port(), this::validate));
+    public void requests() {
+        BenchTest.load()
+                .forEach(req -> BenchTest.execute(application.client(), req, application.port(), this::validate));
     }
 }

@@ -14,6 +14,9 @@ public class Line implements Dataset {
         this.label = label;
         this.borderColor = borderColor;
         this.data = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) {
+            this.data.add(0F);
+        }
     }
 
     public String getLabel() {
@@ -45,6 +48,6 @@ public class Line implements Dataset {
     }
 
     public void addData(int index, float value) {
-        this.data.add(index, value);
+        this.data.set(index, value);
     }
 }

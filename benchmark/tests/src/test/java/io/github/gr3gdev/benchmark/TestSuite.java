@@ -24,7 +24,7 @@ public class TestSuite {
     public static Report report;
     public static HttpClient client;
 
-    public static File getRequestFile(Framework framework, Request.Data req, int index, long memory) {
+    public static File getRequestFile(Framework framework, Request req, int index, long memory) {
         final File iterationDirectory = new File(framework.getDirectory(false), memory + "_" + index);
         if (!iterationDirectory.exists()) {
             try {
@@ -33,8 +33,10 @@ public class TestSuite {
                 throw new RuntimeException(e);
             }
         }
-        return new File(iterationDirectory, req.toString()
+        return new File(iterationDirectory, req.name()
                 .replace(" ", "")
+                .replace("?", "")
+                .replace("&", "_")
                 .replace("/", "_"));
     }
 }
