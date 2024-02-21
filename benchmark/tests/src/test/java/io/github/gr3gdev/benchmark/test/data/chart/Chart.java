@@ -1,33 +1,37 @@
 package io.github.gr3gdev.benchmark.test.data.chart;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public abstract class Chart<D extends Dataset> {
+public class Chart {
     private final String key;
-    private final List<String> labels;
-    protected List<D> datasets = new ArrayList<>();
+    private final String cssClass;
+    private final String title;
+    private final Map<String, List<Value>> dataset = new HashMap<>();
 
-    protected Chart(String key, List<String> labels) {
+    public Chart(String key, String cssClass, String caption) {
         this.key = key;
-        this.labels = labels;
+        this.cssClass = cssClass;
+        this.title = caption;
     }
 
     public String getKey() {
         return key;
     }
 
-    public abstract String getType();
-
-    public List<String> getLabels() {
-        return labels;
+    public String getCssClass() {
+        return cssClass;
     }
 
-    public List<D> getDatasets() {
-        return datasets;
+    public String getTitle() {
+        return title;
     }
 
-    public void setDatasets(List<D> datasets) {
-        this.datasets = datasets;
+    public Map<String, List<Value>> getDataset() {
+        return dataset;
+    }
+
+    public record Value(Double size, String value, String legend, String tooltip) {
     }
 }

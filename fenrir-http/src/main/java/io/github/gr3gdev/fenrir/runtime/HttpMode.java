@@ -22,6 +22,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -52,7 +53,7 @@ public class HttpMode implements Mode<HttpRouteListener, HttpErrorListener, Http
         final ConcurrentMap<Class<?>, RouteValidator> validatorCache = new ConcurrentHashMap<>();
         final ConcurrentMap<HttpRequest, HttpRouteListener> routeListeners = routes.entrySet().parallelStream()
                 .map(entry -> findListeners(plugins, entry.getKey(), entry.getValue(), validatorCache, interceptors))
-                .flatMap(m -> m.entrySet().stream())
+                .flatMap(m -> m.entrySet().parallelStream())
                 .collect(Collectors.toConcurrentMap(Map.Entry::getKey, Map.Entry::getValue));
         return new Listeners<>(routeListeners, new HttpErrorListener());
     }
@@ -78,11 +79,11 @@ public class HttpMode implements Mode<HttpRouteListener, HttpErrorListener, Http
         if (plugin == null) {
             throw new RuntimeException("Missing plugin " + route.plugin().getCanonicalName() + " in @FenrirConfiguration");
         }
-        final List<String> listenerRefs = new ArrayList<>();
+        final List<String> listenerRefs = new CopyOnWriteArrayList<>();
         return Arrays.stream(routeClass.getMethods()).parallel()
                 .filter(m -> m.isAnnotationPresent(Listener.class))
                 .map(m -> mapMethodToListener(route, routeClass, routeInstance, validatorCache, m, plugin, interceptors, listenerRefs))
-                .flatMap(m -> m.entrySet().stream())
+                .flatMap(m -> m.entrySet().parallelStream())
                 .collect(Collectors.toConcurrentMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 

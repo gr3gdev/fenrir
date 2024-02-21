@@ -4,7 +4,7 @@ import io.github.gr3gdev.bench.BenchTest;
 import io.github.gr3gdev.bench.Iteration;
 import io.github.gr3gdev.benchmark.TestSuite;
 import io.github.gr3gdev.benchmark.test.data.Framework;
-import io.github.gr3gdev.benchmark.test.data.chart.LineChart;
+import io.github.gr3gdev.benchmark.test.data.chart.Chart;
 import io.github.gr3gdev.benchmark.test.parameterized.IteratorSource;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -28,11 +28,9 @@ import java.nio.file.Files;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.IntStream;
 
 public abstract class AbstractTest {
 
@@ -106,6 +104,17 @@ public abstract class AbstractTest {
 
     protected abstract Framework getFramework();
 
+    private void createChart(Iteration iteration, String title, String key, double measure, String value, String legend, String tooltip) {
+        final List<Framework> listFrameworks = Arrays.stream(Framework.values())
+                .sorted().toList();
+        final int index = listFrameworks.indexOf(getFramework());
+        TestSuite.report.getCharts()
+                .computeIfAbsent(key,
+                        k -> new Chart(key, "charts-css column multiple hide-data show-heading show-labels show-primary-axis show-data-axes show-4-secondary-axes data-spacing-2 datasets-spacing-1", title))
+                .getDataset().computeIfAbsent(String.valueOf(iteration.index()), k -> new ArrayList<>())
+                .add(index, new Chart.Value(measure, value, legend, tooltip));
+    }
+
     private void measureStartedTime(Iteration iteration) {
         final String service = getFramework().getService();
         final Pattern pattern = getFramework().getStartedPattern();
@@ -128,12 +137,11 @@ public abstract class AbstractTest {
             matcher = pattern.matcher(logs);
         }
         try {
-            final float startedTime = Float.parseFloat(matcher.group(1));
+            final double startedTime = Double.parseDouble(matcher.group(1));
             final String key = "startedTimeChart";
-            ((LineChart) TestSuite.report.getCharts()
-                    .computeIfAbsent(key,
-                            k -> new LineChart(key, IntStream.range(1, iteration.max() + 1).mapToObj(String::valueOf).toList(), "Average started time (seconds)")))
-                    .save(getFramework(), iteration, "started time", startedTime);
+            createChart(iteration, "Started time", key, startedTime, startedTime + "s",
+                    getFramework().getName() + " (" + iteration.memory() + "MB)",
+                    getFramework().getName() + " started up in " + startedTime + " seconds in iteration #" + iteration.index() + " with " + iteration.memory() + "MB of memory");
         } catch (IllegalStateException e) {
             throw new RuntimeException("Error with pattern [" + pattern + "]\n" + logs);
         }
@@ -209,10 +217,9 @@ public abstract class AbstractTest {
                                     throw new RuntimeException(e);
                                 }
                                 final String key = "requestTimeChart" + request.uid();
-                                ((LineChart) TestSuite.report.getCharts()
-                                        .computeIfAbsent(key,
-                                                k -> new LineChart(key, IntStream.range(1, iteration.max() + 1).mapToObj(String::valueOf).toList(), "Average request time (ms)")))
-                                        .save(framework, iteration, request.name(), res);
+                                createChart(iteration, "Request time : " + request.name(), key, res.doubleValue(), res + "ms",
+                                        getFramework().getName() + " (" + iteration.memory() + "MB)",
+                                        "The request " + request.name() + " respond in " + res + " milliseconds at iteration #" + iteration.index() + " with " + iteration.memory() + "MB of memory");
                                 sleep();
                             });
                 });

@@ -5,8 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.gr3gdev.benchmark.test.data.Framework;
 import io.github.gr3gdev.benchmark.test.data.Report;
-import io.github.gr3gdev.benchmark.test.data.chart.Bar;
-import io.github.gr3gdev.benchmark.test.data.chart.BarChart;
+import io.github.gr3gdev.benchmark.test.data.chart.Chart;
 import io.github.gr3gdev.benchmark.test.utils.CommandUtils;
 import org.jetbrains.annotations.Nullable;
 import org.junit.platform.launcher.TestExecutionListener;
@@ -40,14 +39,18 @@ public class BeforeAfterSuiteListener implements TestExecutionListener {
         }
     }
 
-    private BarChart dockerImageSizeChart() {
+    private Chart dockerImageSizeChart() {
         final String key = "dockerImageSize";
-        final BarChart chart = new BarChart(key, Arrays.stream(Framework.values()).map(Framework::getName).toList());
-        final Bar bar = new Bar("Docker image size (MB)");
-        bar.setData(Arrays.stream(Framework.values())
-                .map(this::measureDockerImagesSize)
-                .toList());
-        chart.getDatasets().add(bar);
+        final Chart chart = new Chart(key,
+                "charts-css column show-heading show-labels show-primary-axis show-data-axes data-spacing-10",
+                "Docker image's size");
+        Arrays.stream(Framework.values())
+                .forEach(framework -> {
+                    final Double value = measureDockerImagesSize(framework);
+                    chart.getDataset().put(framework.getName(), List.of(new Chart.Value(value, value + "MB",
+                            framework.getName() + " size",
+                            "The docker's image for " + framework.getName() + " is " + value + "MB")));
+                });
         return chart;
     }
 
