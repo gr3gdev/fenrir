@@ -3,13 +3,14 @@
 Compare Fenrir with :
 
 - Spring
-- Quarkus
 
 Dependencies :
 
 - JPA
 - Lombok
 - PostgreSQL database
+- Thymeleaf
+- Websockets
 
 Database model :
 
@@ -46,10 +47,11 @@ Create a project which expose REST API with JPA, build a docker image.
 
 - measure docker image size
 
-Do 10 times with memory limit to 256MB, 512MB :
+Do 10 times with memory limit to 256MB, 512MB, 1GB :
 
 - Start image, measure start time
-- Execute requests, measure response time and compare response (code & body)
+- Execute requests on REST API, measure response time
+- Navigate HTML pages, measure response time
 
 ```shell
 ./gradlew report

@@ -83,6 +83,17 @@ public class HttpResponse implements Response {
     }
 
     /**
+     * Redirect to another path.
+     *
+     * @param path the other path
+     * @return Response
+     */
+    public HttpResponse redirect(String path) {
+        redirect = path;
+        return this;
+    }
+
+    /**
      * Create a cookie.
      *
      * @param name  The name of the cookie

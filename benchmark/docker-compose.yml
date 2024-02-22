@@ -28,23 +28,6 @@ services:
       database:
         condition: service_healthy
 
-  benchmark-quarkus:
-    image: gr3gdev/benchmark-quarkus
-    network_mode: "host"
-    ports:
-      - 9002:9002
-    deploy:
-      resources:
-        limits:
-          cpus: 1
-          memory: 650M
-        reservations:
-          cpus: '0.50'
-          memory: 512M
-    depends_on:
-      database:
-        condition: service_healthy
-
   benchmark-fenrir:
     image: gr3gdev/benchmark-fenrir
     network_mode: "host"

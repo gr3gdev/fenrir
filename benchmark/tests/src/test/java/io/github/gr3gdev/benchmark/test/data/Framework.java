@@ -13,9 +13,6 @@ public enum Framework {
     SPRING("Spring", "benchmark-spring", 9001, Pattern.compile("Started SpringApp in (.*) seconds"),
             ".*Started SpringApp in .*"
     ),
-    QUARKUS("Quarkus", "benchmark-quarkus", 9002, Pattern.compile("started in (.*)s\\."),
-            ".*started in .*"
-    ),
     FENRIR("Fenrir", "benchmark-fenrir", 9003, Pattern.compile("started on port [0-9]+ in (.*) seconds"),
             ".*started on port .*"
     );

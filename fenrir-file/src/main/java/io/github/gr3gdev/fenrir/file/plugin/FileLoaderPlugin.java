@@ -40,4 +40,9 @@ public class FileLoaderPlugin extends HttpSocketPlugin<String> {
             throw new RuntimeException(exc);
         }
     }
+
+    @Override
+    protected String redirect(String methodReturn) {
+        return null;
+    }
 }

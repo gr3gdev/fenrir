@@ -30,7 +30,6 @@ tasks.named<Test>("test") {
     }
     dependsOn(
         ":benchmark-spring:bootBuildImage",
-        ":benchmark-quarkus:imageBuild",
         ":benchmark-fenrir:buildDockerImage"
     )
 }

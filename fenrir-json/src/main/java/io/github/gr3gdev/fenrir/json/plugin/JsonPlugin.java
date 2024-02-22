@@ -84,4 +84,9 @@ public class JsonPlugin extends HttpSocketPlugin<Object> {
             };
         }
     }
+
+    @Override
+    protected String redirect(Object methodReturn) {
+        return null;
+    }
 }

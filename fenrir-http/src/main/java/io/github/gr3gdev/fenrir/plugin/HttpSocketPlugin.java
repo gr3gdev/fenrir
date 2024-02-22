@@ -48,9 +48,22 @@ public abstract class HttpSocketPlugin<T> extends SocketPlugin<T, HttpRequest, H
      */
     protected abstract Consumer<OutputStream> write(T methodReturn) throws HttpSocketException;
 
+    /**
+     * Get the path for the redirection.
+     *
+     * @param methodReturn the method return
+     * @return String
+     */
+    protected abstract String redirect(T methodReturn);
+
     protected HttpResponse process(T methodReturn, HttpStatus responseCode, String contentType) {
         try {
-            return HttpResponse.of(responseCode).content(write(methodReturn), contentType);
+            final String redirect = redirect(methodReturn);
+            if (redirect != null) {
+                return HttpResponse.of(responseCode).redirect(redirect);
+            } else {
+                return HttpResponse.of(responseCode).content(write(methodReturn), contentType);
+            }
         } catch (HttpSocketException exc) {
             return HttpResponse.of(exc.getReturnStatus())
                     .content(out -> {

@@ -51,4 +51,13 @@ public class ThymeleafPlugin extends HttpSocketPlugin<ThymeleafResponse> {
                 new JServerContext(methodReturn),
                 new OutputStreamWriter(output));
     }
+
+    @Override
+    protected String redirect(ThymeleafResponse methodReturn) {
+        if (methodReturn.redirection()) {
+            return methodReturn.page();
+        } else {
+            return null;
+        }
+    }
 }
