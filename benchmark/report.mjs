@@ -20,16 +20,19 @@ Object.keys(report.charts).forEach(id => {
     table.appendChild(caption);
     const tbody = document.createElement('tbody');
 
-    const max = Math.max(...Object.values(chart.dataset).flatMap(d => d).flatMap(v => v.size)) + 1;
-    let style;
-    if (chart.cssClass.indexOf('column') > -1) {
-        style = (v) => `--size: calc(${v} / ${max});`;
-    } else if (chart.cssClass.indexOf('line') > -1) {
-        style = (v, prev) => {
-            return `--start: ${prev / max}; --end: ${v / max};`;
-        };
-    }
-    let prev = [];
+    const values = Object.values(chart.dataset).flatMap(d => d).flatMap(v => v.size);
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+
+    const compare = document.createElement('div');
+    compare.classList.add('compare')
+    const compareMin = document.createElement('p');
+    const compareMax = document.createElement('p');
+    compare.appendChild(compareMin);
+    compare.appendChild(compareMax);
+
+    const minValues = [];
+    const maxValues = [];
     Object.keys(chart.dataset).forEach(key => {
         const dataset = chart.dataset[key];
         const tr = document.createElement('tr');
@@ -37,28 +40,30 @@ Object.keys(report.charts).forEach(id => {
         th.textContent = key;
         th.setAttribute('scope', 'row');
         tr.appendChild(th);
-        let add = false;
         for (let i = 0; i < dataset.length; i++) {
             const data = dataset[i];
-            if (chart.cssClass.indexOf('line') > -1 && prev[i] || chart.cssClass.indexOf('line') < 0) {
-                add = true;
-                const td = document.createElement('td');
-                td.setAttribute('style', style(data.size, prev[i]));
-                const spanData = document.createElement('span');
-                spanData.classList.add('data');
-                spanData.textContent = data.value;
-                td.appendChild(spanData);
-                const spanTooltip = document.createElement('span');
-                spanTooltip.classList.add('tooltip');
-                spanTooltip.textContent = data.tooltip;
-                td.appendChild(spanTooltip);
-                tr.appendChild(td);
+            const td = document.createElement('td');
+            let style = `--size: calc(${data.size} / ${max});`;
+            if (data.size === min) {
+                minValues.push(data.legend);
+                style += ' background-image: repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(0,255,0,.3) 2px, rgba(0,255,0,.1) 20px);';
             }
-            prev[i] = data.size;
+            if (data.size === max) {
+                maxValues.push(data.legend);
+                style += ' background-image: repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,0,0,.3) 2px, rgba(255,0,0,.1) 20px);';
+            }
+            td.setAttribute('style', style);
+            const spanData = document.createElement('span');
+            spanData.classList.add('data');
+            spanData.textContent = data.value;
+            td.appendChild(spanData);
+            const spanTooltip = document.createElement('span');
+            spanTooltip.classList.add('tooltip');
+            spanTooltip.textContent = data.tooltip;
+            td.appendChild(spanTooltip);
+            tr.appendChild(td);
         }
-        if (add === true) {
-            tbody.appendChild(tr);
-        }
+        tbody.appendChild(tr);
     });
     table.appendChild(tbody);
 
@@ -71,6 +76,10 @@ Object.keys(report.charts).forEach(id => {
             li.textContent = l;
             legend.appendChild(li);
         });
+
+    compareMin.textContent = `Min value : ${minValues.filter((value, index, array) => array.indexOf(value) === index).join(', ')}`;
+    compareMax.textContent = `Max value : ${maxValues.filter((value, index, array) => array.indexOf(value) === index).join(', ')}`;
+    legend.appendChild(compare);
 
     div.appendChild(table);
     div.appendChild(legend);

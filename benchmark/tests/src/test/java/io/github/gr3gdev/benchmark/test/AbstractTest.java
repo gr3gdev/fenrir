@@ -28,7 +28,8 @@ import java.nio.file.Files;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -105,14 +106,10 @@ public abstract class AbstractTest {
     protected abstract Framework getFramework();
 
     private void createChart(Iteration iteration, String title, String key, double measure, String value, String legend, String tooltip) {
-        final List<Framework> listFrameworks = Arrays.stream(Framework.values())
-                .sorted().toList();
-        final int index = listFrameworks.indexOf(getFramework());
         TestSuite.report.getCharts()
                 .computeIfAbsent(key,
                         k -> new Chart(key, "charts-css column multiple hide-data show-heading show-labels show-primary-axis show-data-axes show-4-secondary-axes data-spacing-2 datasets-spacing-1", title))
-                .getDataset().computeIfAbsent(String.valueOf(iteration.index()), k -> new ArrayList<>())
-                .add(index, new Chart.Value(measure, value, legend, tooltip));
+                .addDataset(String.valueOf(iteration.index()), new Chart.Value(measure, value, legend, tooltip));
     }
 
     private void measureStartedTime(Iteration iteration) {

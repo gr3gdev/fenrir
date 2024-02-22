@@ -47,9 +47,9 @@ public class BeforeAfterSuiteListener implements TestExecutionListener {
         Arrays.stream(Framework.values())
                 .forEach(framework -> {
                     final Double value = measureDockerImagesSize(framework);
-                    chart.getDataset().put(framework.getName(), List.of(new Chart.Value(value, value + "MB",
+                    chart.addDataset(framework.getName(), new Chart.Value(value, value + "MB",
                             framework.getName() + " size",
-                            "The docker's image for " + framework.getName() + " is " + value + "MB")));
+                            "The docker's image for " + framework.getName() + " is " + value + "MB"));
                 });
         return chart;
     }
