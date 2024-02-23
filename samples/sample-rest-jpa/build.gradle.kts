@@ -11,7 +11,8 @@ dependencies {
     implementation(libs.fenrir.json)
     implementation(libs.fenrir.jpa)
     implementation(libs.slf4j.jdk14)
-    runtimeOnly(libs.h2)
+    implementation(project(":common:common-jpa"))
+    runtimeOnly(libs.postgresql)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
 }

@@ -3,6 +3,7 @@ lombok = "1.18.30"
 h2 = "2.2.224"
 fenrir = "0.1.0"
 slf4j = "2.0.11"
+postgresql = "42.7.1"
 
 [libraries]
 h2 = { module = "com.h2database:h2", version.ref = "h2" }
@@ -15,3 +16,4 @@ fenrir-jpa = { module = "io.github.gr3gdev:fenrir-jpa", version.ref = "fenrir" }
 fenrir-thymeleaf = { module = "io.github.gr3gdev:fenrir-thymeleaf", version.ref = "fenrir" }
 fenrir-security = { module = "io.github.gr3gdev:fenrir-security", version.ref = "fenrir" }
 slf4j-jdk14 = { module = "org.slf4j:slf4j-jdk14", version.ref = "slf4j" }
+postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }

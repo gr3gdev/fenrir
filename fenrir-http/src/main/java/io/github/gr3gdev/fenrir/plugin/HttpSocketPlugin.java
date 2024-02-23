@@ -9,11 +9,7 @@ import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import java.util.function.Consumer;
 
 /**
  * An abstract implementation of {@link SocketPlugin} for {@link HttpMode}.
@@ -35,18 +31,18 @@ public abstract class HttpSocketPlugin<T> extends SocketPlugin<T, HttpRequest, H
      * {@inheritDoc}
      */
     @Override
-    public HttpResponse process(T methodReturn, Map<String, Object> properties) {
-        return process(methodReturn, (HttpStatus) properties.get(HttpMode.RESPONSE_CODE), (String) properties.get(HttpMode.CONTENT_TYPE));
+    public HttpResponse process(HttpRequest request, T methodReturn, Map<String, Object> properties) {
+        return process(request, methodReturn, (HttpStatus) properties.get(HttpMode.RESPONSE_CODE), (String) properties.get(HttpMode.CONTENT_TYPE));
     }
 
     /**
      * Convert the method's return to a String value to be written in the response.
      *
+     * @param request      the current request
      * @param methodReturn the method return
      * @return Consumer with the output stream in parameter
-     * @throws HttpSocketException exception thrown when the conversion is impossible or invalid
      */
-    protected abstract Consumer<OutputStream> write(T methodReturn) throws HttpSocketException;
+    protected abstract HttpWriter write(HttpRequest request, T methodReturn);
 
     /**
      * Get the path for the redirection.
@@ -56,23 +52,12 @@ public abstract class HttpSocketPlugin<T> extends SocketPlugin<T, HttpRequest, H
      */
     protected abstract String redirect(T methodReturn);
 
-    protected HttpResponse process(T methodReturn, HttpStatus responseCode, String contentType) {
-        try {
-            final String redirect = redirect(methodReturn);
-            if (redirect != null) {
-                return HttpResponse.of(responseCode).redirect(redirect);
-            } else {
-                return HttpResponse.of(responseCode).content(write(methodReturn), contentType);
-            }
-        } catch (HttpSocketException exc) {
-            return HttpResponse.of(exc.getReturnStatus())
-                    .content(out -> {
-                        try {
-                            out.write(exc.getMessage().getBytes(StandardCharsets.UTF_8));
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }, contentType);
+    protected HttpResponse process(HttpRequest request, T methodReturn, HttpStatus responseCode, String contentType) {
+        final String redirect = redirect(methodReturn);
+        if (redirect != null) {
+            return HttpResponse.of(responseCode).redirect(redirect);
+        } else {
+            return HttpResponse.of(responseCode).content(write(request, methodReturn), contentType);
         }
     }
 

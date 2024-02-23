@@ -185,6 +185,14 @@ public class HttpRequestImpl implements HttpRequest {
      * {@inheritDoc}
      */
     @Override
+    public Map<String, String> headers() {
+        return this.headers;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void headers(String key, String value) {
         this.headers.put(key.toLowerCase(), value);
     }
@@ -221,6 +229,14 @@ public class HttpRequestImpl implements HttpRequest {
     @Override
     public void params(String key, String value) {
         this.parameters.put(key.toLowerCase(), value);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Map<String, String> params() {
+        return parameters;
     }
 
     /**

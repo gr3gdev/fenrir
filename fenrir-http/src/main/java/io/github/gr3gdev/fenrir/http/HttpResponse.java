@@ -1,6 +1,7 @@
 package io.github.gr3gdev.fenrir.http;
 
 import io.github.gr3gdev.fenrir.Response;
+import io.github.gr3gdev.fenrir.plugin.HttpWriter;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -17,7 +18,7 @@ import java.util.function.Consumer;
 @Getter
 public class HttpResponse implements Response {
 
-    private Consumer<OutputStream> write;
+    private HttpWriter write;
     @Setter
     private HttpStatus status;
     private String redirect;
@@ -54,7 +55,7 @@ public class HttpResponse implements Response {
      * @param contentType The content-type of the response
      * @return Response
      */
-    public HttpResponse content(Consumer<OutputStream> write, String contentType) {
+    public HttpResponse content(HttpWriter write, String contentType) {
         this.write = write;
         this.contentType = contentType;
         return this;

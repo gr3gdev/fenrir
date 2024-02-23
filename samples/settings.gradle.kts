@@ -12,6 +12,9 @@ pluginManagement {
 }
 
 rootProject.name = "samples"
+include("common:common-jpa")
+include("common:common-thymeleaf")
+include("common:common-websocket")
 include("sample-basic")
 include("sample-login")
 include("sample-rest-jpa")

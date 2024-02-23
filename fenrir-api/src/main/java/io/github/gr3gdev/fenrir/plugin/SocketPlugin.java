@@ -83,13 +83,13 @@ public abstract class SocketPlugin<M, RQ extends Request, RS extends Response> i
                 }
                 methodReturn = method.invoke(routeInstance, parameterValuesArray);
             }
-            return process((M) methodReturn, properties);
+            return process(request, (M) methodReturn, properties);
         } catch (ValidatorException e) {
             final RS response = (RS) e.getResponse();
             return interceptors.stream()
                     .filter(i -> i.supports(e))
                     .findFirst()
-                    .map(i -> process((M) i.replace(() -> response), properties))
+                    .map(i -> process(request, (M) i.replace(() -> response), properties))
                     .orElse(response);
         } catch (Exception e) {
             return processInternalError(properties, e);
@@ -172,9 +172,10 @@ public abstract class SocketPlugin<M, RQ extends Request, RS extends Response> i
     /**
      * Process the response with the method return value.
      *
+     * @param request      the current request
      * @param methodReturn the method return value
      * @param properties   properties for Content-Type, Http Code for response, ...
      * @return Response
      */
-    public abstract RS process(M methodReturn, Map<String, Object> properties);
+    public abstract RS process(RQ request, M methodReturn, Map<String, Object> properties);
 }

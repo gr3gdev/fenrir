@@ -9,13 +9,12 @@ import io.github.gr3gdev.fenrir.http.HttpRequest;
 import io.github.gr3gdev.fenrir.http.HttpResponse;
 import io.github.gr3gdev.fenrir.http.HttpStatus;
 import io.github.gr3gdev.fenrir.plugin.HttpSocketPlugin;
+import io.github.gr3gdev.fenrir.plugin.HttpWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 /**
  * Implementation {@link HttpSocketPlugin}, convert return method and parameters into JSON.
@@ -37,11 +36,11 @@ public class JsonPlugin extends HttpSocketPlugin<Object> {
     }
 
     @Override
-    protected HttpResponse process(Object methodReturn, HttpStatus responseCode, String contentType) {
+    protected HttpResponse process(HttpRequest request, Object methodReturn, HttpStatus responseCode, String contentType) {
         if (methodReturn instanceof Optional<?> optional && optional.isEmpty()) {
             return HttpResponse.of(HttpStatus.NO_CONTENT).contentType(contentType);
         } else {
-            return super.process(methodReturn, responseCode, contentType);
+            return super.process(request, methodReturn, responseCode, contentType);
         }
     }
 
@@ -64,7 +63,7 @@ public class JsonPlugin extends HttpSocketPlugin<Object> {
      * {@inheritDoc}
      */
     @Override
-    protected Consumer<OutputStream> write(Object methodReturn) {
+    protected HttpWriter write(HttpRequest request, Object methodReturn) {
         LOGGER.trace("Convert method return to string");
         if (methodReturn != null) {
             return output -> {

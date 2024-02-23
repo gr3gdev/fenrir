@@ -9,8 +9,11 @@ repositories {
 
 dependencies {
     implementation(libs.fenrir.thymeleaf)
+    implementation(libs.fenrir.jpa)
     implementation(libs.fenrir.file)
     implementation(libs.slf4j.jdk14)
+    runtimeOnly(libs.postgresql)
+    implementation(project(":common:common-thymeleaf"))
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
 }

@@ -35,11 +35,18 @@ public interface HttpRequest extends Request {
     String protocol();
 
     /**
-     * Get HTTP Request headers values.
+     * Get HTTP Request header value.
      *
      * @return Optional of String
      */
     Optional<String> header(String key);
+
+    /**
+     * Get HTTP Request headers.
+     *
+     * @return Map String of String
+     */
+    Map<String, String> headers();
 
     /**
      * Put HTTP Request Headers.
@@ -73,6 +80,13 @@ public interface HttpRequest extends Request {
     void params(String key, String value);
 
     /**
+     * Get HTTP Request parameters.
+     *
+     * @return Map String of String
+     */
+    Map<String, String> params();
+
+    /**
      * Get HTTP Request parameters names.
      *
      * @return Set of String
@@ -85,5 +99,4 @@ public interface HttpRequest extends Request {
      * @return RemoteAddress
      */
     RemoteAddress remoteAddress();
-
 }
