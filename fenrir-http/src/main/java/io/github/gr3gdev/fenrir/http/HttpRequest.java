@@ -14,6 +14,11 @@ import java.util.stream.Stream;
 public interface HttpRequest extends Request {
 
     /**
+     * The UID for request attributes.
+     */
+    String UID = "fenrir_uid";
+
+    /**
      * Path URL.
      *
      * @return String

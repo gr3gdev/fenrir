@@ -64,23 +64,20 @@ public abstract class SocketPlugin<M, RQ extends Request, RS extends Response> i
         LOGGER.trace("Process a request : {}", routeClass.getCanonicalName());
         final Map<String, Class<?>> genericClasses = ClassUtils.findGenericClasses(routeClass);
         final Map<String, Class<?>> parameterClasses = ClassUtils.findGenericClasses(method, genericClasses);
-        final List<Object> parameterValues = new LinkedList<>();
+        final Map<Parameter, Object> mapParametersValue = new LinkedHashMap<>();
+        final List<Object> parametersValue = new LinkedList<>();
         try {
             executeValidatorByAnnotation(method, request, properties);
             for (final Parameter parameter : method.getParameters()) {
                 // Validate parameters (by plugin)
-                parameterValues.add(extractParameter(parameter, request, properties, parameterClasses.get(parameter.getName())));
+                mapParametersValue.put(parameter, extractParameter(parameter, request, properties, parameterClasses.get(parameter.getName())));
             }
             final Object methodReturn;
-            if (parameterValues.isEmpty()) {
+            if (mapParametersValue.isEmpty()) {
                 methodReturn = method.invoke(routeInstance);
             } else {
-                final Object[] parameterValuesArray = parameterValues.toArray();
-                final List<RouteValidator> validatorsToExecute = validators.stream().filter(v -> v.supports(parameterValuesArray)).toList();
-                for (final RouteValidator validator : validatorsToExecute) {
-                    // Validate parameters (by request)
-                    validator.validate(request, properties, parameterValuesArray);
-                }
+                final Object[] parameterValuesArray = validateParameters(request, properties, validators, mapParametersValue);
+                parametersValue.addAll(Arrays.asList(parameterValuesArray));
                 methodReturn = method.invoke(routeInstance, parameterValuesArray);
             }
             return process(request, (M) methodReturn, properties);
@@ -94,6 +91,17 @@ public abstract class SocketPlugin<M, RQ extends Request, RS extends Response> i
         } catch (Exception e) {
             return processInternalError(properties, e);
         }
+    }
+
+    protected Object[] validateParameters(RQ request, Map<String, Object> properties, List<RouteValidator> validators,
+                                          Map<Parameter, Object> mapParameterValues) throws ValidatorException {
+        final Object[] parameterValuesArray = mapParameterValues.values().toArray();
+        final List<RouteValidator> validatorsToExecute = validators.stream().filter(v -> v.supports(parameterValuesArray)).toList();
+        for (final RouteValidator validator : validatorsToExecute) {
+            // Validate parameters (by request)
+            validator.validate(request, properties, parameterValuesArray);
+        }
+        return parameterValuesArray;
     }
 
     /**

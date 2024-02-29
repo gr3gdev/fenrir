@@ -51,7 +51,7 @@ public abstract class SocketReader implements Runnable {
         Optional.ofNullable(listeners.get(request))
                 .ifPresentOrElse(
                         l -> l.handleEvent(request, outputStream),
-                        () -> errorListener.handleEvent(outputStream, "Unable to find a listener for " + request)
+                        () -> errorListener.handleEvent(request, outputStream, "Unable to find a listener for " + request)
                 );
         if (completeAction != null) {
             try {

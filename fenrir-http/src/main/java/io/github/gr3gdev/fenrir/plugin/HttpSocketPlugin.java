@@ -9,6 +9,7 @@ import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -38,8 +39,8 @@ public abstract class HttpSocketPlugin<T> extends SocketPlugin<T, HttpRequest, H
     /**
      * Convert the method's return to a String value to be written in the response.
      *
-     * @param request      the current request
-     * @param methodReturn the method return
+     * @param request         the current request
+     * @param methodReturn    the method return
      * @return Consumer with the output stream in parameter
      */
     protected abstract HttpWriter write(HttpRequest request, T methodReturn);

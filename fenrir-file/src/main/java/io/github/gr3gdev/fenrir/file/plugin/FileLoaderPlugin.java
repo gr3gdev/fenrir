@@ -7,6 +7,7 @@ import io.github.gr3gdev.fenrir.plugin.HttpWriter;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 /**
  * Implementation of {@link HttpSocketPlugin}, the method must return a file path (in classpath).

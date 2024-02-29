@@ -3,26 +3,27 @@ package io.github.gr3gdev.fenrir.thymeleaf;
 import io.github.gr3gdev.fenrir.http.HttpRequest;
 import io.github.gr3gdev.fenrir.plugin.HttpSocketPlugin;
 import io.github.gr3gdev.fenrir.plugin.HttpWriter;
-import io.github.gr3gdev.fenrir.thymeleaf.context.FenrirWebExchange;
-import io.github.gr3gdev.fenrir.thymeleaf.context.WebRequestAdapter;
+import io.github.gr3gdev.fenrir.thymeleaf.context.FenrirContext;
+import io.github.gr3gdev.fenrir.thymeleaf.context.dialect.FenrirDialect;
+import io.github.gr3gdev.fenrir.thymeleaf.messages.FenrirMessageResolver;
+import io.github.gr3gdev.fenrir.validator.RouteValidator;
+import io.github.gr3gdev.fenrir.validator.ValidatorException;
 import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.AbstractContext;
-import org.thymeleaf.context.IWebContext;
-import org.thymeleaf.messageresolver.StandardMessageResolver;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
-import org.thymeleaf.web.IWebExchange;
 
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.util.function.Consumer;
+import java.lang.reflect.Parameter;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Implementation of {@link HttpSocketPlugin}, execute {@link TemplateEngine} for thymeleaf rendering.
  */
 public class ThymeleafPlugin extends HttpSocketPlugin<ThymeleafResponse> {
 
-    private static final TemplateEngine templateEngine = new TemplateEngine();
+    protected final TemplateEngine templateEngine;
+    protected final FenrirDialect dialect;
 
     /**
      * Default constructor.
@@ -37,22 +38,34 @@ public class ThymeleafPlugin extends HttpSocketPlugin<ThymeleafResponse> {
         templateResolver.setCacheTTLMs(3600000L); // 1h by default
         templateResolver.setCacheable(true);
         templateResolver.setCheckExistence(true);
+        templateEngine = new TemplateEngine();
+        dialect = new FenrirDialect();
+        templateEngine.setDialect(dialect);
         templateEngine.setTemplateResolver(templateResolver);
-        templateEngine.setMessageResolver(new StandardMessageResolver());
+        templateEngine.setMessageResolver(new FenrirMessageResolver());
     }
 
-    private static final class JServerContext extends AbstractContext implements IWebContext {
-
-        private final IWebExchange exchange;
-
-        public JServerContext(HttpRequest request, ThymeleafResponse thymeleafResponse) {
-            super(thymeleafResponse.locale(), thymeleafResponse.variables());
-            exchange = new FenrirWebExchange(new WebRequestAdapter(request), thymeleafResponse);
-        }
-
-        @Override
-        public IWebExchange getExchange() {
-            return exchange;
+    @Override
+    protected Object[] validateParameters(HttpRequest request, Map<String, Object> properties, List<RouteValidator> validators,
+                                          Map<Parameter, Object> mapParameterValues) throws ValidatorException {
+        if (!dialect.getValidations().isEmpty()) {
+            Object[] parameters = new Object[mapParameterValues.size()];
+            dialect.getValidations().values().forEach(v -> {
+                int idx = 0;
+                for (final Map.Entry<Parameter, Object> entry : mapParameterValues.entrySet()) {
+                    final Parameter parameter = entry.getKey();
+                    final Object parameterValue = entry.getValue();
+                    if (v.supports(parameter.getType())) {
+                        parameters[idx] = v.convert(request, mapParameterValues);
+                    } else {
+                        parameters[idx] = parameterValue;
+                    }
+                    idx++;
+                }
+            });
+            return parameters;
+        } else {
+            return super.validateParameters(request, properties, validators, mapParameterValues);
         }
     }
 
@@ -61,9 +74,8 @@ public class ThymeleafPlugin extends HttpSocketPlugin<ThymeleafResponse> {
      */
     @Override
     protected HttpWriter write(HttpRequest request, ThymeleafResponse methodReturn) {
-        return output -> templateEngine.process(methodReturn.page(),
-                new JServerContext(request, methodReturn),
-                new OutputStreamWriter(output));
+        final FenrirContext context = new FenrirContext(request, methodReturn);
+        return output -> templateEngine.process(methodReturn.page(), context, new OutputStreamWriter(output));
     }
 
     @Override

@@ -4,10 +4,7 @@ import io.github.gr3gdev.fenrir.Listeners;
 import io.github.gr3gdev.fenrir.SocketReader;
 import io.github.gr3gdev.fenrir.annotation.Listener;
 import io.github.gr3gdev.fenrir.annotation.Route;
-import io.github.gr3gdev.fenrir.http.HttpErrorListener;
-import io.github.gr3gdev.fenrir.http.HttpRequest;
-import io.github.gr3gdev.fenrir.http.HttpResponse;
-import io.github.gr3gdev.fenrir.http.HttpRouteListener;
+import io.github.gr3gdev.fenrir.http.*;
 import io.github.gr3gdev.fenrir.http.impl.HttpRequestImpl;
 import io.github.gr3gdev.fenrir.interceptor.Interceptor;
 import io.github.gr3gdev.fenrir.plugin.HttpSocketPlugin;
@@ -82,7 +79,7 @@ public class HttpMode implements Mode<HttpRouteListener, HttpErrorListener, Http
         final List<String> listenerRefs = new CopyOnWriteArrayList<>();
         return Arrays.stream(routeClass.getMethods()).parallel()
                 .filter(m -> m.isAnnotationPresent(Listener.class))
-                .map(m -> mapMethodToListener(route, routeClass, routeInstance, validatorCache, m, plugin, interceptors, listenerRefs))
+                .map(method -> mapMethodToListener(route, routeClass, routeInstance, validatorCache, method, plugin, interceptors, listenerRefs))
                 .flatMap(m -> m.entrySet().parallelStream())
                 .collect(Collectors.toConcurrentMap(Map.Entry::getKey, Map.Entry::getValue));
     }
@@ -110,12 +107,12 @@ public class HttpMode implements Mode<HttpRouteListener, HttpErrorListener, Http
     }
 
     private Map<HttpRequest, HttpRouteListener> mapMethodToListener(Route route, Class<?> routeClass, Object routeInstance, ConcurrentMap<Class<?>, RouteValidator> validatorCache,
-                                                                    Method m, HttpSocketPlugin<?> plugin, List<Interceptor<?, HttpResponse, ?>> interceptors,
+                                                                    Method method, HttpSocketPlugin<?> plugin, List<Interceptor<?, HttpResponse, ?>> interceptors,
                                                                     List<String> listenerRefs) {
-        final Listener listenerAnnotation = m.getAnnotation(Listener.class);
-        final String ref = listenerRef(listenerAnnotation, m);
+        final Listener listenerAnnotation = method.getAnnotation(Listener.class);
+        final String ref = listenerRef(listenerAnnotation, method);
         if (listenerRefs.contains(ref)) {
-            throw new RuntimeException("Listener ref must be unique in the same Route : " + routeClass.getCanonicalName() + "#" + m.getName());
+            throw new RuntimeException("Listener ref must be unique in the same Route : " + routeClass.getCanonicalName() + "#" + method.getName());
         }
         listenerRefs.add(ref);
         initValidators(listenerAnnotation.validators(), validatorCache);
@@ -126,14 +123,20 @@ public class HttpMode implements Mode<HttpRouteListener, HttpErrorListener, Http
                         .contains(entry.getKey()))
                 .map(Map.Entry::getValue)
                 .toList();
-        final Map<String, Object> properties = Map.of(
+        final Map<String, Object> properties = new HashMap<>(Map.of(
                 CONTENT_TYPE, listenerAnnotation.contentType(),
                 RESPONSE_CODE, listenerAnnotation.responseCode()
-        );
+        ));
         final String path = constructPath(route.path(), listenerAnnotation.path());
         LOGGER.trace("Create a socket event for {} {}", listenerAnnotation.method(), path);
         final HttpRouteListener routeListener = new HttpRouteListener(
-                (req) -> plugin.process(routeClass, routeInstance, m, req, properties, validators, interceptors));
+                (req) -> {
+                    final ConditionalRequest conditionalRequest = (ConditionalRequest) ClassUtils.newInstance(listenerAnnotation.conditionalContentType());
+                    Optional.ofNullable(conditionalRequest.findContentType(req))
+                            .ifPresent(contentType -> properties.put(CONTENT_TYPE, contentType));
+                    return plugin.process(routeClass, routeInstance, method, req, properties,
+                            validators, interceptors);
+                });
         return Map.of(new HttpRequestImpl(listenerAnnotation.method().name(), path), routeListener);
     }
 

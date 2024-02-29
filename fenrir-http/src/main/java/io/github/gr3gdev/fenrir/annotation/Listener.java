@@ -1,7 +1,9 @@
 package io.github.gr3gdev.fenrir.annotation;
 
+import io.github.gr3gdev.fenrir.http.ConditionalRequest;
 import io.github.gr3gdev.fenrir.http.HttpMethod;
 import io.github.gr3gdev.fenrir.http.HttpStatus;
+import io.github.gr3gdev.fenrir.http.impl.NoneConditionalRequest;
 import io.github.gr3gdev.fenrir.validator.RouteValidator;
 
 import java.lang.annotation.ElementType;
@@ -49,6 +51,13 @@ public @interface Listener {
      * @return String
      */
     String contentType() default "text/html";
+
+    /**
+     * Find a content-type dynamically from the request.
+     *
+     * @return Class of {@link ConditionalRequest}
+     */
+    Class<? extends ConditionalRequest> conditionalContentType() default NoneConditionalRequest.class;
 
     /**
      * The validators to use for the request.

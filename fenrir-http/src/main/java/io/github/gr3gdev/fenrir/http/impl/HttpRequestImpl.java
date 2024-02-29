@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -101,6 +103,7 @@ public class HttpRequestImpl implements HttpRequest {
             }
             headerLine = pReader.readLine();
         }
+        headers.putIfAbsent(HttpRequest.UID, UUID.randomUUID().toString());
     }
 
     void loadParameters(HttpRequest request, String pathParameters, BufferedReader pReader)
@@ -114,30 +117,31 @@ public class HttpRequestImpl implements HttpRequest {
             payload.append(pathParameters);
         }
         if (!payload.isEmpty()) {
-            LOGGER.trace("> {}", payload);
+            final String payloadDecoded = URLDecoder.decode(payload.toString(), StandardCharsets.UTF_8);
+            LOGGER.trace("> {}", payloadDecoded);
             final Optional<String> contentType = request.header("Content-Type");
             contentType.ifPresentOrElse(
                     it -> {
                         if (it.equals("application/x-www-form-urlencoded")) {
                             LOGGER.trace("application/x-www-form-urlencoded : extract parameters");
-                            extractParameters(payload, request);
+                            extractParameters(payloadDecoded, request);
                         } else {
                             // By default, set the payload into body's parameter
                             LOGGER.trace("{} : set body parameter", it);
-                            request.params("body", payload.toString());
+                            request.params("body", payloadDecoded);
                         }
                     }, () -> LOGGER.warn("No Content-Type found"));
             if (pathParameters != null) {
-                extractParameters(payload, request);
+                extractParameters(payloadDecoded, request);
             }
-            if (payload.toString().contains("Content-Disposition: form-data;")) {
+            if (payloadDecoded.contains("Content-Disposition: form-data;")) {
                 LOGGER.warn("multipart/form-data is not implemented !");
             }
         }
     }
 
-    void extractParameters(StringBuilder payload, HttpRequest request) {
-        final StringTokenizer pTokens = new StringTokenizer(payload.toString(), "&");
+    void extractParameters(String payload, HttpRequest request) {
+        final StringTokenizer pTokens = new StringTokenizer(payload, "&");
         while (pTokens.hasMoreTokens()) {
             final StringTokenizer vTokens = new StringTokenizer(pTokens.nextToken(), "=");
             if (vTokens.hasMoreTokens()) {

@@ -12,8 +12,8 @@ dependencies {
     implementation(libs.fenrir.jpa)
     implementation(libs.fenrir.file)
     implementation(libs.slf4j.jdk14)
-    runtimeOnly(libs.postgresql)
     implementation(project(":common:common-thymeleaf"))
+    runtimeOnly(libs.postgresql)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
 }

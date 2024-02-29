@@ -14,7 +14,7 @@ dependencies {
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
     api(project(":fenrir-http"))
-    implementation(libs.thymeleaf)
+    api(libs.thymeleaf)
 }
 
 publishing {

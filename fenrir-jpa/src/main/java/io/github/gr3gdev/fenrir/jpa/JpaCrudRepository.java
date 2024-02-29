@@ -81,7 +81,7 @@ public interface JpaCrudRepository<E, K> extends JpaTransactionalRepository {
         if (entity == null) {
             throw new RuntimeException("Cannot delete a null entity");
         }
-        executeInTransaction(() -> entityManager().detach(entity));
+        executeInTransaction(() -> entityManager().remove(entity));
     }
 
     /**

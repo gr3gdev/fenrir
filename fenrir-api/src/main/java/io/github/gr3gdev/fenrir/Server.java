@@ -70,33 +70,22 @@ final class Server {
                         final BufferedReader reader = new BufferedReader(new InputStreamReader(inputstream));
                         final String firstLine = reader.readLine();
                         // Multiple mode support
-                        final Map.Entry<Mode<? extends RouteListener, ? extends ErrorListener, ? extends Request, ? extends Response>,
-                                Listeners<? extends Request, ? extends RouteListener, ? extends ErrorListener>> entry = modes.entrySet().stream()
-                                .filter(e -> e.getKey().accept(firstLine))
+                        modes.entrySet().stream()
+                                .filter(e -> firstLine != null && e.getKey().accept(firstLine))
                                 .findFirst()
-                                .orElseThrow();
-                        // If the mode accept the request
-                        final Mode<? extends RouteListener, ? extends ErrorListener, ? extends Request, ? extends Response> mode = entry.getKey();
-                        final Class<? extends SocketReader> socketReaderClass = mode.getSocketReaderClass();
-                        final Listeners<? extends Request, ? extends RouteListener, ? extends ErrorListener> listeners = entry.getValue();
-                        try {
-                            // Find and execute the listener
-                            final SocketReader socketReader = socketReaderClass.getDeclaredConstructor(String.class, BufferedReader.class, OutputStream.class,
-                                            SocketAddress.class, ConcurrentMap.class, ErrorListener.class)
-                                    .newInstance(firstLine, reader, outputstream, remoteAddress,
-                                            listeners.listeners(), listeners.errorListener());
-                            socketReader.setCompleteAction(() -> {
-                                outputstream.flush();
-                                inputstream.close();
-                                outputstream.close();
-                            });
-                            Thread.ofPlatform().name("Fenrir.Server " + socketReaderClass.getSimpleName())
-                                    .start(socketReader);
-                        } catch (InstantiationException | IllegalAccessException |
-                                 InvocationTargetException | NoSuchMethodException e) {
-                            throw new RuntimeException(e);
-                        }
-                    } catch (IOException | IllegalArgumentException | SecurityException exc) {
+                                .ifPresentOrElse(entry -> {
+                                    // If the mode accept the request
+                                    executeMode(entry, firstLine, reader, outputstream, remoteAddress, inputstream);
+                                }, () -> {
+                                    try {
+                                        outputstream.flush();
+                                        inputstream.close();
+                                        outputstream.close();
+                                    } catch (IOException e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                });
+                    } catch (Exception exc) {
                         if (active.get() && !(exc instanceof SocketException)) {
                             LOGGER.error("Server socket error", exc);
                         }
@@ -110,6 +99,32 @@ final class Server {
             this.modes.clear();
         } catch (IOException exc) {
             LOGGER.error("Initialization error", exc);
+        }
+    }
+
+    private static void executeMode(Map.Entry<Mode<? extends RouteListener, ? extends ErrorListener, ? extends Request, ? extends Response>,
+            Listeners<? extends Request, ? extends RouteListener, ? extends ErrorListener>> entry,
+                                    String firstLine, BufferedReader reader, OutputStream outputstream,
+                                    SocketAddress remoteAddress, InputStream inputstream) {
+        final Mode<? extends RouteListener, ? extends ErrorListener, ? extends Request, ? extends Response> mode = entry.getKey();
+        final Class<? extends SocketReader> socketReaderClass = mode.getSocketReaderClass();
+        final Listeners<? extends Request, ? extends RouteListener, ? extends ErrorListener> listeners = entry.getValue();
+        try {
+            // Find and execute the listener
+            final SocketReader socketReader = socketReaderClass.getDeclaredConstructor(String.class, BufferedReader.class, OutputStream.class,
+                            SocketAddress.class, ConcurrentMap.class, ErrorListener.class)
+                    .newInstance(firstLine, reader, outputstream, remoteAddress,
+                            listeners.listeners(), listeners.errorListener());
+            socketReader.setCompleteAction(() -> {
+                outputstream.flush();
+                inputstream.close();
+                outputstream.close();
+            });
+            Thread.ofPlatform().name("Fenrir.Server " + socketReaderClass.getSimpleName())
+                    .start(socketReader);
+        } catch (InstantiationException | IllegalAccessException |
+                 InvocationTargetException | NoSuchMethodException e) {
+            throw new RuntimeException(e);
         }
     }
 

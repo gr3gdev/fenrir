@@ -9,7 +9,7 @@ repositories {
 
 dependencies {
     implementation("org.hibernate.orm:hibernate-core:6.4.2.Final")
-    implementation("jakarta.validation:jakarta.validation-api:3.1.0-M1")
+    implementation("jakarta.validation:jakarta.validation-api:3.0.2")
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
 }

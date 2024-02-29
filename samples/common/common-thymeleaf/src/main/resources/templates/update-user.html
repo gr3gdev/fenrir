@@ -12,13 +12,6 @@
 </head>
 <body>
 <div class="container my-5">
-    <form id="form-locale" action="#" th:action="@{/adduser}"  method="post">
-        <select id="select-locale" name="locale">
-            <option th:each="l: ${locales}" th:value="${l.language}" th:text="${l.displayCountry}"
-                    th:selected="${l.language==locale.language}">Locale
-            </option>
-        </select>
-    </form>
     <h2 class="mb-5" th:text="#{messages.update}">Update User</h2>
     <div class="row">
         <div class="col-md-6">

@@ -8,3 +8,4 @@ include("fenrir-api", "fenrir-http", "fenrir-thymeleaf", "fenrir-jpa", "fenrir-s
     "fenrir-file", "fenrir-json", "fenrir-hal", "fenrir-websocket")
 include("fenrir-gradle-plugin")
 include("fenrir-test")
+include("fenrir-thymeleaf-validator")

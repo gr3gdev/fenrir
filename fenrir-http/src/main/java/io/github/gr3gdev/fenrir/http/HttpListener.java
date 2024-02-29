@@ -7,9 +7,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class HttpListener {
-    protected byte[] constructResponseHeader(Response response) {
+    /**
+     * Add headers to the HTTP response.
+     *
+     * @param request  the HTTP request
+     * @param response the HTTP response
+     * @return Array of byte
+     */
+    protected byte[] constructResponseHeader(HttpRequest request, Response response) {
         final HttpResponse httpResponse = (HttpResponse) response;
         final List<String> headers = new ArrayList<>();
+        request.header(HttpRequest.UID).ifPresent(uid -> headers.add(HttpRequest.UID + ": " + uid));
         if (httpResponse.getRedirect() != null) {
             httpResponse.setStatus(HttpStatus.FOUND);
             headers.add("Location: " + httpResponse.getRedirect());
